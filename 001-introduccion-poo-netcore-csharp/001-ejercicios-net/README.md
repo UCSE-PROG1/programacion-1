@@ -1,4 +1,4 @@
-# Ejercicios .NET Core - Programación 2
+# Ejercicios .NET Core - Programación 1
 
 ## Configuración inicial
 
