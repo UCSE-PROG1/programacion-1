@@ -136,31 +136,36 @@ static void EjercicioBiblioteca()
     biblioteca.Libros.Add(libro);
     biblioteca.Usuarios.Add(usuario);
 
-    Console.WriteLine("--- Menú Biblioteca ---");
-    Console.WriteLine("1. Prestar libro");
-    Console.WriteLine("2. Consultar disponibilidad");
-    Console.WriteLine("3. Devolver libro");
-    Console.Write("Elegí una opción: ");
-    string opcion = Console.ReadLine();
+    string opcion = "";
+    while (opcion != "0")
+    {
+        Console.WriteLine("--- Menú Biblioteca ---");
+        Console.WriteLine("1. Prestar libro");
+        Console.WriteLine("2. Consultar disponibilidad");
+        Console.WriteLine("3. Devolver libro");
+        Console.WriteLine("0. Salir");
+        Console.Write("Elegí una opción: ");
+        opcion = Console.ReadLine();
 
-    if (opcion == "1")
-    {
-        bool resultado = biblioteca.PrestarLibro(libro, usuario);
-        Console.WriteLine("Préstamo exitoso: " + resultado);
-    }
-    else if (opcion == "2")
-    {
-        bool disponible = biblioteca.ConsultarDisponibilidad(libro);
-        Console.WriteLine("Disponible: " + disponible);
-    }
-    else if (opcion == "3")
-    {
-        Libro devuelto = biblioteca.DevolverLibro(libro, usuario);
-        Console.WriteLine("Libro devuelto: " + devuelto.Titulo);
-    }
-    else
-    {
-        Console.WriteLine("Opción no válida.");
+        if (opcion == "1")
+        {
+            bool resultado = biblioteca.PrestarLibro(libro, usuario);
+            Console.WriteLine("Préstamo exitoso: " + resultado);
+        }
+        else if (opcion == "2")
+        {
+            bool disponible = biblioteca.ConsultarDisponibilidad(libro);
+            Console.WriteLine("Disponible: " + disponible);
+        }
+        else if (opcion == "3")
+        {
+            Libro devuelto = biblioteca.DevolverLibro(libro, usuario);
+            Console.WriteLine("Libro devuelto: " + devuelto.Titulo);
+        }
+        else if (opcion != "0")
+        {
+            Console.WriteLine("Opción no válida.");
+        }
     }
 }
 
