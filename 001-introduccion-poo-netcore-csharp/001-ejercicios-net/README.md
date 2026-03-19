@@ -2,21 +2,13 @@
 
 ## Configuración inicial
 
-1. Crear un repositorio en GitHub (ej: `prog2-ejercicios-net`) — puede ser público o privado
-2. Copiar la URL del repositorio y hacer **git clone** en una carpeta de tu computadora:
-   ```bash
-   git clone https://github.com/tu-usuario/prog2-ejercicios-net.git
-   ```
-3. Abrir Visual Studio Code y crear el proyecto .NET **dentro de la carpeta que se acaba de clonar**:
-   ```bash
-   cd prog2-ejercicios-net
-   dotnet new console -n EjerciciosNet
-   ```
-   Luego abrir la carpeta del proyecto en VS Code: `File → Open Folder`.
+Abrir Visual Studio Code y crear el proyecto .NET en una carpeta de tu computadora:
+```bash
+dotnet new console -n EjerciciosNet
+```
+Luego abrir la carpeta del proyecto en VS Code: `File → Open Folder`.
 
-   > Si no tenés instalado el SDK de .NET, descargarlo desde [dotnet.microsoft.com/download](https://dotnet.microsoft.com/download) seleccionando **.NET 8** (LTS).
-
-   > **Importante:** el proyecto .NET debe quedar dentro de la carpeta del repositorio. Si el proyecto se crea en otro lado, los cambios no van a estar versionados.
+> Si no tenés instalado el SDK de .NET, descargarlo desde [dotnet.microsoft.com/download](https://dotnet.microsoft.com/download) seleccionando **.NET 8** (LTS).
 
 ## Estructura del proyecto
 
