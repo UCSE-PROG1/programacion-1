@@ -117,11 +117,51 @@ EjercicioCursos();
 
 static void EjercicioBiblioteca()
 {
-    // Pedir datos por pantalla con Console.ReadLine() (titulo, autor, nombre de usuario, dni)
-    // Crear objetos Libro y Usuario con esos datos
-    // Crear instancia de Biblioteca y agregar los objetos a sus listas
-    // Invocar PrestarLibro(), ConsultarDisponibilidad(), DevolverLibro()
-    // Imprimir los resultados retornados por cada método con Console.WriteLine()
+    Console.Write("Título del libro: ");
+    string titulo = Console.ReadLine();
+
+    Console.Write("Autor del libro: ");
+    string autor = Console.ReadLine();
+
+    Console.Write("Nombre del usuario: ");
+    string nombre = Console.ReadLine();
+
+    Console.Write("DNI del usuario: ");
+    string dni = Console.ReadLine();
+
+    Libro libro = new Libro(titulo, autor);
+    Usuario usuario = new Usuario(nombre, dni);
+
+    Biblioteca biblioteca = new Biblioteca();
+    biblioteca.Libros.Add(libro);
+    biblioteca.Usuarios.Add(usuario);
+
+    Console.WriteLine("--- Menú Biblioteca ---");
+    Console.WriteLine("1. Prestar libro");
+    Console.WriteLine("2. Consultar disponibilidad");
+    Console.WriteLine("3. Devolver libro");
+    Console.Write("Elegí una opción: ");
+    string opcion = Console.ReadLine();
+
+    if (opcion == "1")
+    {
+        bool resultado = biblioteca.PrestarLibro(libro, usuario);
+        Console.WriteLine("Préstamo exitoso: " + resultado);
+    }
+    else if (opcion == "2")
+    {
+        bool disponible = biblioteca.ConsultarDisponibilidad(libro);
+        Console.WriteLine("Disponible: " + disponible);
+    }
+    else if (opcion == "3")
+    {
+        Libro devuelto = biblioteca.DevolverLibro(libro, usuario);
+        Console.WriteLine("Libro devuelto: " + devuelto.Titulo);
+    }
+    else
+    {
+        Console.WriteLine("Opción no válida.");
+    }
 }
 
 static void EjercicioPedidos()
