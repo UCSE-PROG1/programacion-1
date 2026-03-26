@@ -12,9 +12,9 @@ Esta unidad cubre los conceptos fundamentales de la Programación Orientada a Ob
 4. [Propiedades (get/set)](#4-propiedades-getset)
 5. [Arrays](#5-arrays)
 6. [Listas (List\<T\>)](#6-listas-listt)
-7. [Excepciones](#7-excepciones)
-8. [Constantes y Enumeradores](#8-constantes-y-enumeradores)
-9. [Null y NullReferenceException](#9-null-y-nullreferenceexception)
+7. [Null y NullReferenceException](#7-null-y-nullreferenceexception)
+8. [Excepciones](#8-excepciones)
+9. [Constantes y Enumeradores](#9-constantes-y-enumeradores)
 10. [LINQ y Expresiones Lambda](#10-linq-y-expresiones-lambda)
 11. [Programación Orientada a Objetos - Los 4 Pilares](#11-programación-orientada-a-objetos---los-4-pilares)
 12. [Herencia](#12-herencia)
@@ -544,7 +544,52 @@ Console.WriteLine($"Alumnos después de limpiar: {alumnos.Count}"); // 0
 
 ---
 
-## 7. Excepciones
+## 7. Null y NullReferenceException
+
+**`null`** representa la ausencia de un objeto. Cuando una variable de tipo referencia (como `string`, clases, listas) no apunta a ningún objeto, su valor es `null`.
+
+Si intentás llamar a un método o acceder a una propiedad de una variable que es `null`, obtenés una **`NullReferenceException`** en tiempo de ejecución.
+
+### Cómo verificar null
+
+```csharp
+// Verificación tradicional con if
+string nombre = ObtenerNombre(); // puede devolver null
+
+if (nombre != null)
+{
+    Console.WriteLine(nombre.ToUpper());
+}
+else
+{
+    Console.WriteLine("El nombre no está disponible.");
+}
+
+// Operador null-condicional (?.) - forma moderna y segura
+// Si nombre es null, no lanza excepción, simplemente devuelve null
+string nombreMayusculas = nombre?.ToUpper();
+Console.WriteLine(nombreMayusculas ?? "Sin nombre"); // ?? = operador null-coalescing
+
+// Tipos nullable: permiten que tipos de valor (int, bool, etc.) sean null
+int? edad = null; // sin el ?, int no puede ser null
+if (edad.HasValue)
+{
+    Console.WriteLine($"Edad: {edad.Value}");
+}
+else
+{
+    Console.WriteLine("Edad no especificada.");
+}
+
+// Valor por defecto si es null
+int edadReal = edad ?? 0; // si edad es null, usa 0
+```
+
+> **Buena práctica**: siempre verificá si una variable puede ser `null` antes de usarla, especialmente cuando viene de entrada del usuario o de métodos externos.
+
+---
+
+## 8. Excepciones
 
 Una **excepción** es un error que ocurre durante la ejecución del programa e interrumpe el flujo normal. C# usa un sistema estructurado de manejo de excepciones con los bloques `try`, `catch` y `finally`.
 
@@ -701,7 +746,7 @@ catch (SaldoInsuficienteException ex)
 
 ---
 
-## 8. Constantes y Enumeradores
+## 9. Constantes y Enumeradores
 
 ### Constantes (`const`)
 
@@ -771,51 +816,6 @@ switch (estado)
         break;
 }
 ```
-
----
-
-## 9. Null y NullReferenceException
-
-**`null`** representa la ausencia de un objeto. Cuando una variable de tipo referencia (como `string`, clases, listas) no apunta a ningún objeto, su valor es `null`.
-
-Si intentás llamar a un método o acceder a una propiedad de una variable que es `null`, obtenés una **`NullReferenceException`** en tiempo de ejecución.
-
-### Cómo verificar null
-
-```csharp
-// Verificación tradicional con if
-string nombre = ObtenerNombre(); // puede devolver null
-
-if (nombre != null)
-{
-    Console.WriteLine(nombre.ToUpper());
-}
-else
-{
-    Console.WriteLine("El nombre no está disponible.");
-}
-
-// Operador null-condicional (?.) - forma moderna y segura
-// Si nombre es null, no lanza excepción, simplemente devuelve null
-string nombreMayusculas = nombre?.ToUpper();
-Console.WriteLine(nombreMayusculas ?? "Sin nombre"); // ?? = operador null-coalescing
-
-// Tipos nullable: permiten que tipos de valor (int, bool, etc.) sean null
-int? edad = null; // sin el ?, int no puede ser null
-if (edad.HasValue)
-{
-    Console.WriteLine($"Edad: {edad.Value}");
-}
-else
-{
-    Console.WriteLine("Edad no especificada.");
-}
-
-// Valor por defecto si es null
-int edadReal = edad ?? 0; // si edad es null, usa 0
-```
-
-> **Buena práctica**: siempre verificá si una variable puede ser `null` antes de usarla, especialmente cuando viene de entrada del usuario o de métodos externos.
 
 ---
 
