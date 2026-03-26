@@ -10,11 +10,11 @@ Esta unidad cubre los conceptos fundamentales de la Programación Orientada a Ob
 2. [Clases y Objetos](#2-clases-y-objetos)
 3. [Constructores](#3-constructores)
 4. [Propiedades (get/set)](#4-propiedades-getset)
-5. [Excepciones](#5-excepciones)
-6. [Constantes y Enumeradores](#6-constantes-y-enumeradores)
-7. [Null y NullReferenceException](#7-null-y-nullreferenceexception)
-8. [Arrays](#8-arrays)
-9. [Listas (List\<T\>)](#9-listas-listt)
+5. [Arrays](#5-arrays)
+6. [Listas (List\<T\>)](#6-listas-listt)
+7. [Excepciones](#7-excepciones)
+8. [Constantes y Enumeradores](#8-constantes-y-enumeradores)
+9. [Null y NullReferenceException](#9-null-y-nullreferenceexception)
 10. [LINQ y Expresiones Lambda](#10-linq-y-expresiones-lambda)
 11. [Programación Orientada a Objetos - Los 4 Pilares](#11-programación-orientada-a-objetos---los-4-pilares)
 12. [Herencia](#12-herencia)
@@ -447,7 +447,104 @@ Console.WriteLine(cuenta.NumeroCuenta); // 001-234567 (solo lectura, no se puede
 
 ---
 
-## 5. Excepciones
+## 5. Arrays
+
+Un **array** (arreglo) es una estructura de datos de **tamaño fijo** que almacena elementos del mismo tipo en posiciones contiguas de memoria. Los índices empiezan en `0`.
+
+```csharp
+// Declaración e inicialización
+int[] notas = new int[5]; // array de 5 enteros, todos inicializados en 0
+notas[0] = 85;
+notas[1] = 72;
+notas[2] = 90;
+notas[3] = 68;
+notas[4] = 77;
+
+// Inicialización directa con valores
+int[] notasDirectas = { 85, 72, 90, 68, 77 };
+
+// Acceder a un elemento
+Console.WriteLine($"Primera nota: {notas[0]}"); // 85
+Console.WriteLine($"Última nota: {notas[notas.Length - 1]}"); // 77
+
+// Calcular el promedio
+int suma = 0;
+for (int i = 0; i < notas.Length; i++)
+{
+    suma += notas[i];
+}
+double promedio = (double)suma / notas.Length;
+Console.WriteLine($"Promedio: {promedio:F2}"); // Promedio: 78.40
+
+// Recorrer con foreach (más simple cuando no necesitás el índice)
+Console.WriteLine("Todas las notas:");
+foreach (int nota in notas)
+{
+    Console.Write($"{nota} ");
+}
+```
+
+> **Limitación**: el tamaño de un array no puede cambiar después de crearlo. Si necesitás una colección de tamaño dinámico, usá `List<T>`.
+
+---
+
+## 6. Listas (List\<T\>)
+
+Una **`List<T>`** es una colección de tamaño **dinámico** que puede crecer o reducirse en tiempo de ejecución. Es la estructura más utilizada en C# para manejar colecciones de objetos.
+
+| Método / Propiedad | Descripción |
+|--------------------|-------------|
+| `Add(elemento)` | Agrega un elemento al final |
+| `Remove(elemento)` | Elimina la primera ocurrencia del elemento |
+| `RemoveAt(indice)` | Elimina el elemento en el índice indicado |
+| `Contains(elemento)` | Devuelve `true` si el elemento existe |
+| `IndexOf(elemento)` | Devuelve el índice del elemento (-1 si no existe) |
+| `Count` | Cantidad de elementos en la lista |
+| `Clear()` | Elimina todos los elementos |
+
+```csharp
+// Crear y gestionar una lista de alumnos
+List<string> alumnos = new List<string>();
+
+// Agregar alumnos
+alumnos.Add("Carlos Pérez");
+alumnos.Add("Ana García");
+alumnos.Add("Luis Martínez");
+alumnos.Add("María López");
+
+Console.WriteLine($"Total de alumnos: {alumnos.Count}"); // 4
+
+// Verificar si existe
+bool existe = alumnos.Contains("Ana García");
+Console.WriteLine($"¿Existe Ana García? {existe}"); // True
+
+// Obtener índice
+int indice = alumnos.IndexOf("Luis Martínez");
+Console.WriteLine($"Índice de Luis Martínez: {indice}"); // 2
+
+// Eliminar por nombre
+alumnos.Remove("Luis Martínez");
+Console.WriteLine($"Alumnos después de eliminar: {alumnos.Count}"); // 3
+
+// Eliminar por índice
+alumnos.RemoveAt(0); // elimina "Carlos Pérez"
+Console.WriteLine($"Alumnos después de eliminar por índice: {alumnos.Count}"); // 2
+
+// Recorrer la lista
+Console.WriteLine("Lista de alumnos:");
+foreach (string alumno in alumnos)
+{
+    Console.WriteLine($"  - {alumno}");
+}
+
+// Limpiar la lista
+alumnos.Clear();
+Console.WriteLine($"Alumnos después de limpiar: {alumnos.Count}"); // 0
+```
+
+---
+
+## 7. Excepciones
 
 Una **excepción** es un error que ocurre durante la ejecución del programa e interrumpe el flujo normal. C# usa un sistema estructurado de manejo de excepciones con los bloques `try`, `catch` y `finally`.
 
@@ -604,7 +701,7 @@ catch (SaldoInsuficienteException ex)
 
 ---
 
-## 6. Constantes y Enumeradores
+## 8. Constantes y Enumeradores
 
 ### Constantes (`const`)
 
@@ -677,7 +774,7 @@ switch (estado)
 
 ---
 
-## 7. Null y NullReferenceException
+## 9. Null y NullReferenceException
 
 **`null`** representa la ausencia de un objeto. Cuando una variable de tipo referencia (como `string`, clases, listas) no apunta a ningún objeto, su valor es `null`.
 
@@ -719,103 +816,6 @@ int edadReal = edad ?? 0; // si edad es null, usa 0
 ```
 
 > **Buena práctica**: siempre verificá si una variable puede ser `null` antes de usarla, especialmente cuando viene de entrada del usuario o de métodos externos.
-
----
-
-## 8. Arrays
-
-Un **array** (arreglo) es una estructura de datos de **tamaño fijo** que almacena elementos del mismo tipo en posiciones contiguas de memoria. Los índices empiezan en `0`.
-
-```csharp
-// Declaración e inicialización
-int[] notas = new int[5]; // array de 5 enteros, todos inicializados en 0
-notas[0] = 85;
-notas[1] = 72;
-notas[2] = 90;
-notas[3] = 68;
-notas[4] = 77;
-
-// Inicialización directa con valores
-int[] notasDirectas = { 85, 72, 90, 68, 77 };
-
-// Acceder a un elemento
-Console.WriteLine($"Primera nota: {notas[0]}"); // 85
-Console.WriteLine($"Última nota: {notas[notas.Length - 1]}"); // 77
-
-// Calcular el promedio
-int suma = 0;
-for (int i = 0; i < notas.Length; i++)
-{
-    suma += notas[i];
-}
-double promedio = (double)suma / notas.Length;
-Console.WriteLine($"Promedio: {promedio:F2}"); // Promedio: 78.40
-
-// Recorrer con foreach (más simple cuando no necesitás el índice)
-Console.WriteLine("Todas las notas:");
-foreach (int nota in notas)
-{
-    Console.Write($"{nota} ");
-}
-```
-
-> **Limitación**: el tamaño de un array no puede cambiar después de crearlo. Si necesitás una colección de tamaño dinámico, usá `List<T>`.
-
----
-
-## 9. Listas (List\<T\>)
-
-Una **`List<T>`** es una colección de tamaño **dinámico** que puede crecer o reducirse en tiempo de ejecución. Es la estructura más utilizada en C# para manejar colecciones de objetos.
-
-| Método / Propiedad | Descripción |
-|--------------------|-------------|
-| `Add(elemento)` | Agrega un elemento al final |
-| `Remove(elemento)` | Elimina la primera ocurrencia del elemento |
-| `RemoveAt(indice)` | Elimina el elemento en el índice indicado |
-| `Contains(elemento)` | Devuelve `true` si el elemento existe |
-| `IndexOf(elemento)` | Devuelve el índice del elemento (-1 si no existe) |
-| `Count` | Cantidad de elementos en la lista |
-| `Clear()` | Elimina todos los elementos |
-
-```csharp
-// Crear y gestionar una lista de alumnos
-List<string> alumnos = new List<string>();
-
-// Agregar alumnos
-alumnos.Add("Carlos Pérez");
-alumnos.Add("Ana García");
-alumnos.Add("Luis Martínez");
-alumnos.Add("María López");
-
-Console.WriteLine($"Total de alumnos: {alumnos.Count}"); // 4
-
-// Verificar si existe
-bool existe = alumnos.Contains("Ana García");
-Console.WriteLine($"¿Existe Ana García? {existe}"); // True
-
-// Obtener índice
-int indice = alumnos.IndexOf("Luis Martínez");
-Console.WriteLine($"Índice de Luis Martínez: {indice}"); // 2
-
-// Eliminar por nombre
-alumnos.Remove("Luis Martínez");
-Console.WriteLine($"Alumnos después de eliminar: {alumnos.Count}"); // 3
-
-// Eliminar por índice
-alumnos.RemoveAt(0); // elimina "Carlos Pérez"
-Console.WriteLine($"Alumnos después de eliminar por índice: {alumnos.Count}"); // 2
-
-// Recorrer la lista
-Console.WriteLine("Lista de alumnos:");
-foreach (string alumno in alumnos)
-{
-    Console.WriteLine($"  - {alumno}");
-}
-
-// Limpiar la lista
-alumnos.Clear();
-Console.WriteLine($"Alumnos después de limpiar: {alumnos.Count}"); // 0
-```
 
 ---
 
