@@ -8,10 +8,9 @@
 4. [El Flujo Básico de Git](#4-el-flujo-básico-de-git)
 5. [Ver el Historial](#5-ver-el-historial)
 6. [Trabajar con Repositorios Remotos (GitHub)](#6-trabajar-con-repositorios-remotos-github)
-7. [Ramas (Branches)](#7-ramas-branches)
-8. [Resolución de Conflictos](#8-resolución-de-conflictos)
-9. [Buenas Prácticas](#9-buenas-prácticas)
-10. [.gitignore](#10-gitignore)
+7. [Resolución de Conflictos](#7-resolución-de-conflictos)
+8. [Buenas Prácticas](#8-buenas-prácticas)
+9. [.gitignore](#9-gitignore)
 
 ---
 
@@ -81,6 +80,40 @@ Tiempo ────────────────────────�
 ```
 
 En cualquier momento podés volver a cualquiera de esos puntos.
+
+### Instalación de Git
+
+#### Windows
+
+1. Descargá el instalador desde [git-scm.com](https://git-scm.com/download/win).
+2. Ejecutá el instalador (`.exe`) y seguí los pasos. Las opciones por defecto son correctas para la mayoría de los casos.
+3. Durante la instalación, en el paso **"Choosing the default editor"**, se recomienda seleccionar **Visual Studio Code** si ya lo tenés instalado.
+4. Al finalizar, abrí **Git Bash** (se instala junto con Git) o una terminal y verificá:
+
+```bash
+git --version
+# Salida esperada: git version 2.x.x.windows.x
+```
+
+#### macOS
+
+En macOS, Git suele venir preinstalado. Verificá abriendo la terminal:
+
+```bash
+git --version
+```
+
+Si no está instalado, el sistema te ofrecerá instalar las **Xcode Command Line Tools** automáticamente. Aceptá y seguí los pasos.
+
+Alternativamente, podés instalarlo con **Homebrew**:
+
+```bash
+# Instalar Homebrew (si no lo tenés)
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+
+# Instalar Git
+brew install git
+```
 
 ---
 
@@ -238,44 +271,78 @@ Cómo leer el historial:
 
 **GitHub** es una plataforma web que hospeda repositorios Git remotos. Permite tener una copia de seguridad en la nube, colaborar con otros desarrolladores y gestionar las entregas de la materia.
 
-Los comandos principales para trabajar con remotos:
+La forma que vamos a usar en esta materia es siempre la misma: **primero crear el repositorio en GitHub y luego clonarlo en una carpeta vacía local**. Esto evita tener que vincular manualmente el repositorio remoto y garantiza que todo esté correctamente configurado desde el inicio.
+
+### Flujo de trabajo
+
+**Paso 1 — Crear el repositorio en GitHub**
+
+1. Ir a [github.com](https://github.com) e iniciar sesión.
+2. Hacer clic en el botón **"New"** (o el ícono `+` → "New repository").
+3. Completar el nombre del repositorio.
+4. Seleccionar **Private**.
+5. Tildar **"Add a README file"** para que el repositorio no quede vacío.
+6. Hacer clic en **"Create repository"**.
+
+**Paso 2 — Agregar a los profesores como colaboradores**
+
+Para que los profesores puedan ver y revisar tu repositorio privado, debés agregarlos como colaboradores:
+
+1. En la página del repositorio, ir a **Settings** → **Collaborators** → **"Add people"**.
+2. Agregar los siguientes correos uno por uno:
+   - `gonzaperez2312@gmail.com`
+   - `maximilianolovera@gmail.com`
+3. Hacer clic en **"Add collaborator"** para cada uno.
+
+> Este paso es obligatorio en cada entrega. Sin acceso, los profesores no pueden corregir el trabajo.
+
+**Paso 4 — Clonar el repositorio en tu máquina**
+
+En la página del repositorio recién creado, hacer clic en el botón verde **"Code"** y copiar la URL (HTTPS).
+
+```bash
+# Clonar el repositorio en una carpeta nueva (se crea sola con el nombre del repo)
+git clone https://github.com/tu-usuario/mi-proyecto-csharp.git
+
+# Entrar a la carpeta clonada
+cd mi-proyecto-csharp
+```
+
+A partir de este punto, la carpeta ya está vinculada con el repositorio remoto. No es necesario ningún `git remote add`.
+
+**Paso 5 — Trabajar, commitear y subir cambios**
+
+```bash
+# Hacer cambios en los archivos del proyecto...
+
+# Ver el estado
+git status
+
+# Agregar los cambios al staging area
+git add .
+
+# Crear un commit
+git commit -m "Agregar clase Calculadora con estructura inicial"
+
+# Subir los commits al repositorio remoto
+git push
+```
+
+**Paso 6 — Descargar cambios del remoto**
+
+Si trabajás desde otra computadora o un compañero subió cambios, siempre sincronizá antes de empezar:
+
+```bash
+git pull
+```
+
+### Referencia de comandos
 
 | Comando | Descripción |
 |---|---|
-| `git remote add origin URL` | Vincula el repositorio local con uno remoto en GitHub |
-| `git push -u origin main` | Sube los commits locales al remoto por primera vez |
-| `git push` | Sube nuevos commits (después del primer push) |
+| `git clone URL` | Descarga el repositorio remoto y lo vincula automáticamente |
+| `git push` | Sube los commits locales al repositorio remoto |
 | `git pull` | Descarga y fusiona los cambios del remoto |
-| `git clone URL` | Descarga una copia completa de un repositorio remoto |
-
-```bash
-# Paso 1: (En GitHub) Crear un nuevo repositorio
-# Ir a github.com → botón "New" → completar nombre → "Create repository"
-
-# Paso 2: Vincular el repositorio local con el remoto
-git remote add origin https://github.com/tu-usuario/mi-proyecto-csharp.git
-
-# Paso 3: Verificar que el remoto fue agregado correctamente
-git remote -v
-# origin  https://github.com/tu-usuario/mi-proyecto-csharp.git (fetch)
-# origin  https://github.com/tu-usuario/mi-proyecto-csharp.git (push)
-
-# Paso 4: Subir los commits al remoto por primera vez
-git push -u origin main
-
-# Paso 5: Hacer un cambio, commitearlo y subirlo
-echo "// Nuevo método" >> Calculadora.cs
-git add Calculadora.cs
-git commit -m "Agregar comentario en Calculadora"
-git push
-# Desde el segundo push no hace falta -u origin main
-
-# Paso 6: Descargar cambios del remoto
-git pull
-
-# Clonar un repositorio existente desde GitHub
-git clone https://github.com/tu-usuario/mi-proyecto-csharp.git
-```
 
 ### Repositorios públicos vs privados
 
@@ -297,58 +364,7 @@ En proyectos colaborativos el flujo típico es:
 
 ---
 
-## 7. Ramas (Branches)
-
-Las ramas permiten desarrollar funcionalidades o corregir bugs sin afectar el código principal. El flujo típico es: crear una rama → hacer commits → fusionarla con `main`.
-
-| Comando | Descripción |
-|---|---|
-| `git branch` | Lista todas las ramas locales |
-| `git branch nombre-rama` | Crea una nueva rama |
-| `git switch nombre-rama` | Cambia a la rama indicada |
-| `git switch -c nombre-rama` | Crea una nueva rama y cambia a ella en un solo paso |
-| `git merge nombre-rama` | Fusiona la rama indicada en la rama actual |
-| `git branch -d nombre-rama` | Elimina una rama ya fusionada |
-
-```bash
-# Ver las ramas existentes (* indica la rama actual)
-git branch
-# * main
-
-# Crear una rama y cambiar a ella en un solo paso
-git switch -c feature/division
-
-# Verificar en qué rama estamos
-git branch
-#   main
-# * feature/division
-
-# Hacer cambios y commitearlos en la nueva rama
-echo "// Método Dividir agregado" >> Calculadora.cs
-git add Calculadora.cs
-git commit -m "Agregar método Dividir con validación de divisor cero"
-
-# Volver a main y fusionar
-git switch main
-git merge feature/division
-# Salida:
-# Updating a1b2c3d..e5f6a7b
-# Fast-forward
-#  Calculadora.cs | 1 +
-#  1 file changed, 1 insertion(+)
-
-# Verificar el historial
-git log --oneline
-# e5f6a7b (HEAD -> main, feature/division) Agregar método Dividir con validación de divisor cero
-# a1b2c3d Agregar clase Calculadora con suma inicial
-
-# Eliminar la rama ya fusionada
-git branch -d feature/division
-```
-
----
-
-## 8. Resolución de Conflictos
+## 7. Resolución de Conflictos
 
 Un **conflicto** ocurre cuando Git no puede fusionar automáticamente dos ramas porque ambas modificaron la misma línea del mismo archivo. Git marca el archivo con delimitadores especiales:
 
@@ -394,7 +410,7 @@ git commit -m "Resolver conflicto: mantener nombres de parámetros a, b en Sumar
 
 ---
 
-## 9. Buenas Prácticas
+## 8. Buenas Prácticas
 
 **Sincronizá antes de empezar a trabajar:**
 ```bash
@@ -424,7 +440,7 @@ git commit -m "Agregar tests unitarios para el caso de división por cero"
 
 ---
 
-## 10. .gitignore
+## 9. .gitignore
 
 El archivo **`.gitignore`** le indica a Git qué archivos o carpetas debe ignorar. Sirve para no subir archivos generados automáticamente (binarios, compilados), configuración personal del IDE o credenciales.
 
