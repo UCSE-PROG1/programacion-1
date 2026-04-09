@@ -291,6 +291,7 @@ Para que los profesores puedan ver y revisar tu repositorio privado, debés agre
 1. En la página del repositorio, ir a **Settings** → **Collaborators** → **"Add people"**.
 2. Agregar los siguientes correos uno por uno:
    - `gonzaperez2312@gmail.com`
+   - `mateolerda03@gmail.com`
    - `maximilianolovera@gmail.com`
 3. Hacer clic en **"Add collaborator"** para cada uno.
 
