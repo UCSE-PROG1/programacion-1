@@ -242,4 +242,77 @@ Una plataforma deportiva gestiona torneos de fútbol. Cada jugador tiene un nomb
 
 ---
 
+### 16. Biblioteca con reservas
+Una biblioteca necesita gestionar su catálogo de libros y los préstamos a usuarios. Cada libro tiene un título, un autor, un ISBN único y una cantidad de ejemplares disponibles. Los usuarios tienen un nombre, un DNI y una lista de préstamos activos. El sistema debe permitir registrar nuevos libros (sumando ejemplares si el ISBN ya existe), prestar un libro a un usuario (solo si hay stock disponible y el usuario no lo tiene ya prestado), registrar la devolución de libros y permitir que los usuarios reserven libros cuando no hay disponibilidad. Cuando un libro es devuelto, debe asignarse automáticamente al primer usuario en la lista de reservas. Además, se debe poder listar los libros más prestados.
+
+---
+
+### 17. Sistema de cine con butacas
+Un cine necesita gestionar sus salas y la venta de entradas. Cada sala tiene un número, una capacidad y un conjunto de butacas identificadas por fila y número. Cada función tiene una película, una fecha y hora, y una sala asignada. El sistema debe permitir vender entradas asignando una butaca específica si está disponible, cancelar entradas, mostrar el estado de las butacas (ocupadas o libres) para una función determinada, calcular la recaudación total de una función y evitar que una misma butaca sea vendida más de una vez.
+
+---
+
+### 18. Plataforma de streaming
+Una plataforma de streaming ofrece distintos tipos de contenido, como películas y series. Cada contenido tiene un título, un género y una duración. Las series, además, están compuestas por temporadas y episodios. Los usuarios tienen un nombre, un email y un historial de contenido visto. El sistema debe permitir marcar contenido como visto, calificarlo con un puntaje del 1 al 5, obtener recomendaciones de contenido no visto ordenado por mejor calificación, calcular el tiempo total de visualización de un usuario y listar los contenidos más populares según las calificaciones recibidas.
+
+---
+
+### 19. Sistema de vuelos
+Una aerolínea necesita gestionar sus vuelos y pasajeros. Cada vuelo tiene un código, un origen, un destino, una capacidad máxima y una lista de pasajeros con sus asientos asignados. Cada pasajero tiene un nombre y un DNI. El sistema debe permitir reservar asientos (asignando automáticamente uno disponible o permitiendo elegirlo), cancelar reservas, manejar una lista de espera cuando el vuelo está completo y asignar automáticamente un asiento cuando se libera un lugar. Además, se debe poder calcular el porcentaje de ocupación de cada vuelo.
+
+---
+
+### 20. Carrito de compras con descuentos
+Una tienda online necesita gestionar carritos de compra. Cada producto tiene un nombre, un precio y una categoría. Un carrito contiene múltiples productos con sus respectivas cantidades. El sistema debe permitir agregar y quitar productos del carrito, aplicar descuentos (como un 10% si se supera un monto determinado o promociones del tipo 2x1 en ciertas categorías), calcular el total final de la compra y generar un resumen detallado con los productos, cantidades, descuentos aplicados y total a pagar.
+
+---
+
+### 21. Sistema de turnos médicos avanzado
+Un centro médico necesita gestionar turnos con mayor complejidad. Cada médico tiene un nombre, una especialidad y una duración específica para sus turnos. Los pacientes tienen un nombre y un historial de turnos. El sistema debe permitir asignar turnos verificando que un paciente no tenga superposición horaria, cancelar y reprogramar turnos, calcular el tiempo de espera promedio por médico y dar prioridad a pacientes con carácter urgente, asegurando que puedan obtener turnos más rápidamente.
+
+---
+
+### 22. Videojuego RPG (POO con herencia)
+Un videojuego de rol gestiona distintos tipos de personajes. Todos los personajes tienen un nombre, puntos de vida y nivel. Existen distintos tipos de personajes como guerreros, magos y arqueros, cada uno con características particulares. Los personajes pueden atacarse entre sí, subir de nivel mejorando sus estadísticas y gestionar un inventario con objetos como armas y pociones. El sistema debe permitir realizar combates por turnos, utilizar objetos del inventario para recuperar vida y aplicar reglas distintas según el tipo de personaje.
+
+---
+
+### 23. Sistema bancario con cuentas
+Un banco necesita gestionar clientes y sus cuentas. Cada cliente tiene un nombre, un DNI y puede tener múltiples cuentas. Existen distintos tipos de cuentas, como caja de ahorro y cuenta corriente, esta última permitiendo un descubierto. El sistema debe permitir realizar depósitos, extracciones y transferencias entre cuentas, calcular intereses mensuales, y bloquear una cuenta si su saldo negativo supera un límite establecido.
+
+---
+
+### 24. Gestión de proyectos
+Una aplicación de gestión de proyectos permite organizar tareas. Cada proyecto tiene un nombre y una lista de tareas. Cada tarea tiene un título, una descripción, un estado (pendiente, en progreso o terminada) y un usuario asignado. El sistema debe permitir crear tareas, cambiar su estado, reasignarlas a distintos usuarios, calcular el porcentaje de avance del proyecto en base a las tareas completadas y listar las tareas correspondientes a cada usuario.
+
+---
+
+### 25. Sistema de restaurante
+Un restaurante necesita gestionar mesas, mozos y pedidos. Cada mesa puede estar ocupada por clientes y tener un pedido asociado, el cual contiene una lista de platos con sus precios. El sistema debe permitir asignar mesas a clientes, crear pedidos, agregar o quitar platos, calcular el total a pagar, dividir la cuenta entre los comensales y liberar la mesa una vez que el pago ha sido realizado.
+
+---
+
+### 26. Plataforma de alquiler de autos
+Una empresa de alquiler de autos gestiona su flota y sus clientes. Cada auto tiene una marca, un modelo, un precio por día y un estado (disponible o alquilado). Los clientes pueden alquilar autos si están disponibles y luego devolverlos. El sistema debe calcular el costo total del alquiler según la cantidad de días, aplicar recargos en caso de devoluciones tardías y permitir listar todos los autos disponibles en un momento dado.
+
+---
+
+### 27. Sistema de encuestas
+Una aplicación permite crear encuestas con múltiples preguntas y opciones de respuesta. Los usuarios pueden responder encuestas, pero solo una vez por encuesta. El sistema debe registrar las respuestas, calcular el porcentaje de votos por opción, mostrar los resultados de cada pregunta y determinar cuál fue la opción más elegida.
+
+---
+
+### 28. Gestión de stock con proveedores
+Una empresa necesita controlar su stock de productos y sus proveedores. Cada producto tiene un nombre, una cantidad en stock y un nivel mínimo requerido. Los proveedores tienen un nombre y una lista de productos que pueden suministrar. El sistema debe permitir registrar compras y ventas de productos, actualizar el stock, detectar productos que están por debajo del mínimo, sugerir proveedores para reponerlos y calcular el valor total del inventario disponible.
+
+---
+
+### 29. Sistema de mensajería tipo WhatsApp
+Una aplicación de mensajería permite a los usuarios comunicarse entre sí y en grupos. Cada usuario tiene un nombre y una lista de conversaciones. Los mensajes tienen un texto, una fecha y un estado (enviado, recibido o leído). El sistema debe permitir enviar mensajes individuales y grupales, marcar mensajes como leídos, mostrar el historial de conversaciones ordenado por fecha y contar la cantidad de mensajes no leídos.
+
+---
+
+### 30. Sistema de reservas de hotel
+Un hotel necesita gestionar sus habitaciones y reservas. Cada habitación tiene un número, un tipo y un precio por noche. Las reservas incluyen un cliente, una habitación y un rango de fechas de ingreso y salida. El sistema debe verificar la disponibilidad de habitaciones para un rango de fechas determinado, registrar nuevas reservas, cancelarlas, calcular el costo total de la estadía y listar la ocupación del hotel en una fecha específica.
+
 > Unidad 2 - Práctica 2 | Programación 1 | UCSE
