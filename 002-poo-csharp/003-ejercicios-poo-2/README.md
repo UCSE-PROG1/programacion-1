@@ -316,3 +316,25 @@ Una aplicación de mensajería permite a los usuarios comunicarse entre sí y en
 Un hotel necesita gestionar sus habitaciones y reservas. Cada habitación tiene un número, un tipo y un precio por noche. Las reservas incluyen un cliente, una habitación y un rango de fechas de ingreso y salida. El sistema debe verificar la disponibilidad de habitaciones para un rango de fechas determinado, registrar nuevas reservas, cancelarlas, calcular el costo total de la estadía y listar la ocupación del hotel en una fecha específica.
 
 > Unidad 2 - Práctica 2 | Programación 1 | UCSE
+
+---
+
+## Corrección — Ejercicios POO 2 (2026)
+
+> Total de ejercicios: **30**. Fecha de corrección: 2026-04-16.
+
+| Alumno | Ejercicios entregados | Ejercicios completados | Ejercicios faltantes |
+|---|---|---|---|
+| Caudana | 1, 2, 3, 4, 5, 6 | 6 | 24 |
+| Franco | 1, 2, 3, 4, 5 | 5 | 25 |
+| Hartmann | 1, 2, 3 | 3 | 27 |
+| Cassani | 1, 2 | 2 | 28 |
+| Lagger | 1, 2 | 2 | 28 |
+| Lubatti | 1, 2 | 2 | 28 |
+| Heinzmann | 1 | 1 | 29 |
+| REY | 1 | 1 | 29 |
+| Solari | 1 | 1 | 29 |
+| Castro | — | 0 | 30 |
+| Ferrarese | — | 0 | 30 |
+| Gandini | — | 0 | 30 |
+| Tocchetti | — | 0 | 30 |
