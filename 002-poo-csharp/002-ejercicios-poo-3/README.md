@@ -2,36 +2,54 @@
 
 ## Configuración inicial
 
-Crear el proyecto .NET en una carpeta de tu computadora:
+Crear la solución con dos proyectos separados, ejecutando los comandos en este orden dentro de una carpeta vacía:
 
 ```bash
-dotnet new console -n EjerciciosPOO3
+# 1. Crear la solución
+dotnet new sln -n EjerciciosPOO3
+
+# 2. Crear el proyecto de lógica (class library, sin ejecutable)
+dotnet new classlib -n EjerciciosPOO3
+
+# 3. Crear el proyecto de consola (ejecutable)
+dotnet new console -n AppConsola
+
+# 4. Agregar ambos proyectos a la solución
+dotnet sln add EjerciciosPOO3/EjerciciosPOO3.csproj
+dotnet sln add AppConsola/AppConsola.csproj
+
+# 5. Agregar la referencia: AppConsola depende de EjerciciosPOO3
+dotnet add AppConsola/AppConsola.csproj reference EjerciciosPOO3/EjerciciosPOO3.csproj
 ```
 
-Luego abrir la carpeta del proyecto en VS Code: `File → Open Folder`.
+Luego abrir la carpeta raíz (donde está `EjerciciosPOO3.sln`) en VS Code: `File → Open Folder`.
 
 > Si no tenés instalado el SDK de .NET, descargarlo desde [dotnet.microsoft.com/download](https://dotnet.microsoft.com/download) seleccionando **.NET 8** (LTS).
 
-## Estructura del proyecto
-
-Cada ejercicio va en su propia carpeta dentro del proyecto:
+## Jerarquía de proyectos
 
 ```
-EjerciciosPOO3/
-├── Program.cs                              ← único punto de entrada
-├── Ejercicio01Vehiculos/
-│   ├── Vehiculo.cs
-│   ├── Auto.cs
-│   └── Moto.cs
-├── Ejercicio02Bebidas/
-│   ├── Bebida.cs
-│   ├── Cafe.cs
-│   ├── Jugo.cs
-│   └── Agua.cs
-└── ...
+EjerciciosPOO3.sln
+├── AppConsola/                   ← punto de entrada (ejecutable)
+│   ├── AppConsola.csproj         ← referencia a EjerciciosPOO3
+│   └── Program.cs
+└── EjerciciosPOO3/               ← lógica del negocio (class library)
+    ├── EjerciciosPOO3.csproj
+    ├── Ejercicio01Vehiculos/
+    │   ├── Vehiculo.cs
+    │   ├── Auto.cs
+    │   └── Moto.cs
+    ├── Ejercicio02Bebidas/
+    │   ├── Bebida.cs
+    │   ├── Cafe.cs
+    │   ├── Jugo.cs
+    │   └── Agua.cs
+    └── ...
 ```
 
-> `Program.cs` es el único punto de entrada. Cada carpeta contiene solo las clases del ejercicio. Para probar un ejercicio, instanciar las clases desde `Program.cs`.
+**Dependencia:** `AppConsola` → `EjerciciosPOO3`
+
+> Las clases de cada ejercicio van en `EjerciciosPOO3/`. `Program.cs` es el único punto de entrada: instancia y prueba las clases desde `AppConsola/`.
 
 ---
 
