@@ -4,6 +4,13 @@ Repositorio oficial de la materia **Programación 1** de la Universidad del Cent
 
 ---
 
+## Planificación de la materia
+
+Podés consultar la planificación completa de la materia en el siguiente enlace:
+[Planificación de Programación 1](https://docs.google.com/document/d/1mGOgG4zGRI63L9MhI-V7tCgypG47XcWSU8yF5Mb1tyU/edit?usp=sharing)
+
+---
+
 ## Tabla de contenidos
 
 | # | Unidad | Temas principales |
