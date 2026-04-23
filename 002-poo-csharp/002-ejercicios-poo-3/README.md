@@ -24,8 +24,6 @@ dotnet add AppConsola/AppConsola.csproj reference EjerciciosPOO3/EjerciciosPOO3.
 
 Luego abrir la carpeta raíz (donde está `EjerciciosPOO3.sln`) en VS Code: `File → Open Folder`.
 
-> Si no tenés instalado el SDK de .NET, descargarlo desde [dotnet.microsoft.com/download](https://dotnet.microsoft.com/download) seleccionando **.NET 8** (LTS).
-
 ## Jerarquía de proyectos
 
 ```
