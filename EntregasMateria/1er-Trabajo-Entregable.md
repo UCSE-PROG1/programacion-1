@@ -51,7 +51,7 @@ Se deben escribir tests unitarios con NUnit que verifiquen el comportamiento de 
 
 ### Control de versiones
 
-- Crear el repositorio en GitHub como **privado**, con el nombre `Prog1-TP-Integrador-[Apellido]`.
+- Crear el repositorio en GitHub como **privado**, con el nombre `Prog1-TP-Integrador1-[Apellido]`. (Debe estar creado para el 15/5 con la invitación enviada a los docentes, de lo contrario ya se contará como reentrega).
 - Agregar como colaboradores: `gonzaperez2312@gmail.com`, `mateolerda03@gmail.com`.
 - Incluir un `.gitignore` adecuado para proyectos .NET.
 - Realizar **al menos 5 commits** con mensajes descriptivos en modo imperativo que reflejen la evolución del trabajo.
