@@ -84,33 +84,23 @@ En la práctica:
 
 ## 4. Configuración del Proyecto
 
-Para trabajar con JSON en C# usamos la biblioteca **Newtonsoft.Json**, también conocida como **Json.NET**. Es la librería de serialización JSON más popular del ecosistema .NET.
-
-**Instalar vía terminal:**
-```bash
-dotnet add package Newtonsoft.Json
-```
-
-**O agregarlo manualmente al archivo `.csproj`:**
-```xml
-<ItemGroup>
-  <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
-</ItemGroup>
-```
+Para trabajar con JSON en C# usamos el namespace **`System.Text.Json`**, que viene incluido en .NET sin necesidad de instalar ningún paquete externo.
 
 **Agregar el using en los archivos que lo necesiten:**
 ```csharp
-using Newtonsoft.Json;
+using System.Text.Json;
 ```
+
+> `System.Text.Json` está disponible de forma nativa desde .NET Core 3.0 en adelante. No requiere ningún `dotnet add package`.
 
 ---
 
 ## 5. Serializar un Objeto a JSON
 
-El método principal es `JsonConvert.SerializeObject()`. Recibe un objeto C# y devuelve un `string` con el JSON correspondiente.
+El método principal es `JsonSerializer.Serialize()`. Recibe un objeto C# y devuelve un `string` con el JSON correspondiente.
 
 ```csharp
-using Newtonsoft.Json;
+using System.Text.Json;
 
 public class Persona
 {
@@ -129,12 +119,13 @@ var persona = new Persona
 };
 
 // Serialización compacta (una sola línea)
-string jsonCompacto = JsonConvert.SerializeObject(persona);
+string jsonCompacto = JsonSerializer.Serialize(persona);
 Console.WriteLine(jsonCompacto);
 // Salida: {"Nombre":"Juan","Edad":30,"Email":"juan@email.com"}
 
 // Serialización con formato (más legible)
-string jsonFormateado = JsonConvert.SerializeObject(persona, Formatting.Indented);
+var opciones = new JsonSerializerOptions { WriteIndented = true };
+string jsonFormateado = JsonSerializer.Serialize(persona, opciones);
 Console.WriteLine(jsonFormateado);
 // Salida:
 // {
@@ -144,16 +135,16 @@ Console.WriteLine(jsonFormateado);
 // }
 ```
 
-> Para guardar en un archivo se prefiere `Formatting.Indented` porque el archivo es más fácil de leer e inspeccionar manualmente.
+> Para guardar en un archivo se prefiere `WriteIndented = true` porque el archivo es más fácil de leer e inspeccionar manualmente.
 
 ---
 
 ## 6. Deserializar JSON a un Objeto
 
-El método es `JsonConvert.DeserializeObject<T>()`, donde `T` es el tipo al que queremos convertir el JSON. Recibe el string JSON y devuelve un objeto del tipo indicado.
+El método es `JsonSerializer.Deserialize<T>()`, donde `T` es el tipo al que queremos convertir el JSON. Recibe el string JSON y devuelve un objeto del tipo indicado.
 
 ```csharp
-using Newtonsoft.Json;
+using System.Text.Json;
 
 string jsonString = @"{
   ""Nombre"": ""Ana"",
@@ -162,7 +153,7 @@ string jsonString = @"{
 }";
 
 // Deserializar: convierte el texto JSON en un objeto Persona
-Persona persona = JsonConvert.DeserializeObject<Persona>(jsonString);
+Persona persona = JsonSerializer.Deserialize<Persona>(jsonString);
 
 Console.WriteLine(persona.Nombre);  // Ana
 Console.WriteLine(persona.Edad);    // 25
@@ -187,15 +178,17 @@ Console.WriteLine(persona.Email);   // ana@email.com
 
 ```csharp
 using System.IO;
-using Newtonsoft.Json;
+using System.Text.Json;
 
 var persona = new Persona { Nombre = "Carlos", Edad = 28, Email = "carlos@email.com" };
 
 // Definir la ruta del archivo
 string ruta = "persona.json";
 
+var opciones = new JsonSerializerOptions { WriteIndented = true };
+
 // --- GUARDAR ---
-string json = JsonConvert.SerializeObject(persona, Formatting.Indented);
+string json = JsonSerializer.Serialize(persona, opciones);
 File.WriteAllText(ruta, json);
 Console.WriteLine("Persona guardada correctamente.");
 
@@ -203,7 +196,7 @@ Console.WriteLine("Persona guardada correctamente.");
 if (File.Exists(ruta))
 {
     string contenido = File.ReadAllText(ruta);
-    Persona personaCargada = JsonConvert.DeserializeObject<Persona>(contenido);
+    Persona personaCargada = JsonSerializer.Deserialize<Persona>(contenido);
     Console.WriteLine($"Persona cargada: {personaCargada.Nombre}, {personaCargada.Edad} años");
 }
 else
@@ -223,7 +216,7 @@ El mismo enfoque funciona para `List<T>`. JSON representa las listas como arrays
 ```csharp
 using System.Collections.Generic;
 using System.IO;
-using Newtonsoft.Json;
+using System.Text.Json;
 
 var personas = new List<Persona>
 {
@@ -234,14 +227,16 @@ var personas = new List<Persona>
 
 string ruta = "personas.json";
 
+var opciones = new JsonSerializerOptions { WriteIndented = true };
+
 // --- GUARDAR LA LISTA ---
-string json = JsonConvert.SerializeObject(personas, Formatting.Indented);
+string json = JsonSerializer.Serialize(personas, opciones);
 File.WriteAllText(ruta, json);
 Console.WriteLine($"Se guardaron {personas.Count} personas.");
 
 // --- CARGAR LA LISTA ---
 string contenido = File.ReadAllText(ruta);
-List<Persona> personasCargadas = JsonConvert.DeserializeObject<List<Persona>>(contenido);
+List<Persona> personasCargadas = JsonSerializer.Deserialize<List<Persona>>(contenido);
 Console.WriteLine($"Se cargaron {personasCargadas.Count} personas.");
 
 foreach (var p in personasCargadas)
@@ -256,26 +251,35 @@ foreach (var p in personasCargadas)
 
 En proyectos bien organizados, encapsulamos la lógica de lectura y escritura en una clase llamada **Repositorio**. Esta clase es la única responsable de saber cómo y dónde se guardan los datos.
 
+En la arquitectura de dos proyectos, el repositorio vive en `ProyectoLogica/Data/`:
+
 ```csharp
+// ProyectoLogica/Data/PersonaRepository.cs
 using System.Collections.Generic;
 using System.IO;
-using Newtonsoft.Json;
+using System.Text.Json;
 
-public class PersonaRepositorio
+public class PersonaRepository
 {
-    private string _rutaArchivo = "personas.json";
+    private readonly string _rutaArchivo;
+    private readonly JsonSerializerOptions _opciones = new JsonSerializerOptions { WriteIndented = true };
+
+    public PersonaRepository(string rutaArchivo)
+    {
+        _rutaArchivo = rutaArchivo;
+    }
 
     /// <summary>
     /// Lee el archivo JSON y devuelve la lista de personas.
     /// Si el archivo no existe, devuelve una lista vacía.
     /// </summary>
-    public List<Persona> ObtenerTodos()
+    public List<Persona> Leer()
     {
         if (!File.Exists(_rutaArchivo))
             return new List<Persona>();
 
         string json = File.ReadAllText(_rutaArchivo);
-        return JsonConvert.DeserializeObject<List<Persona>>(json) ?? new List<Persona>();
+        return JsonSerializer.Deserialize<List<Persona>>(json) ?? new List<Persona>();
     }
 
     /// <summary>
@@ -283,24 +287,48 @@ public class PersonaRepositorio
     /// </summary>
     public void Guardar(List<Persona> lista)
     {
-        string json = JsonConvert.SerializeObject(lista, Formatting.Indented);
+        string json = JsonSerializer.Serialize(lista, _opciones);
         File.WriteAllText(_rutaArchivo, json);
     }
 }
+```
 
-// --- Uso del repositorio ---
+El **Service** (también en `ProyectoLogica`) usa el repositorio para implementar la lógica de negocio:
 
-var repositorio = new PersonaRepositorio();
+```csharp
+// ProyectoLogica/PersonaService.cs
+public class PersonaService
+{
+    private readonly PersonaRepository _repository;
 
-// Leer los datos existentes
-List<Persona> personas = repositorio.ObtenerTodos();
+    public PersonaService(string rutaArchivo)
+    {
+        _repository = new PersonaRepository(rutaArchivo);
+    }
 
-// Agregar una nueva persona
-personas.Add(new Persona { Nombre = "Sofia", Edad = 22, Email = "sofia@email.com" });
+    public void AgregarPersona(Persona persona)
+    {
+        List<Persona> personas = _repository.Leer();
+        personas.Add(persona);
+        _repository.Guardar(personas);
+    }
 
-// Guardar la lista actualizada
-repositorio.Guardar(personas);
+    public List<Persona> ObtenerTodos()
+    {
+        return _repository.Leer();
+    }
+}
+```
 
+El `Program.cs` en `ProyectoConsola` solo instancia el service y lo usa:
+
+```csharp
+// ProyectoConsola/Program.cs
+PersonaService service = new PersonaService("personas.json");
+
+service.AgregarPersona(new Persona { Nombre = "Sofia", Edad = 22, Email = "sofia@email.com" });
+
+List<Persona> personas = service.ObtenerTodos();
 Console.WriteLine($"Total de personas guardadas: {personas.Count}");
 ```
 
@@ -312,56 +340,83 @@ Console.WriteLine($"Total de personas guardadas: {personas.Count}");
 
 A medida que los proyectos crecen, separamos el código en **capas** con responsabilidades bien definidas. Cada capa solo se comunica con la inmediatamente adyacente.
 
+> **Nota:** En esta unidad vamos a ubicar el repositorio dentro de `ProyectoLogica`. En la **Unidad 6** vamos a ver cómo reorganizar mejor la solución, separando el acceso a datos en su propia capa.
+
 ```
 ┌─────────────────────────────────┐
-│      PRESENTACIÓN               │  ← Program.cs / Consola
+│      PRESENTACIÓN               │  ← ProyectoConsola / Program.cs
 │  Muestra datos, recibe input    │
 └──────────────┬──────────────────┘
                │
 ┌──────────────▼──────────────────┐
-│      SERVICIO                   │  ← PersonaService.cs
+│      SERVICIO                   │  ← ProyectoLogica / PersonaService.cs
 │  Lógica de negocio              │
 └──────────────┬──────────────────┘
                │
 ┌──────────────▼──────────────────┐
-│      DATOS                      │  ← PersonaRepositorio.cs
+│      DATOS                      │  ← ProyectoLogica / Data / PersonaRepository.cs
 │  Lectura/escritura de archivos  │
 └──────────────┬──────────────────┘
                │
 ┌──────────────▼──────────────────┐
-│      ENTIDADES                  │  ← Persona.cs
+│      ENTIDADES                  │  ← ProyectoLogica / Persona.cs
 │  Clases modelo (POCO)           │
 └─────────────────────────────────┘
 ```
 
-**Estructura de archivos del proyecto:**
+**Estructura de archivos de la solución:**
 ```
-MiProyecto/
-├── Entidades/
-│   └── Persona.cs
-├── Datos/
-│   └── PersonaRepositorio.cs
-├── Servicios/
-│   └── PersonaService.cs
-└── Program.cs
+Proyecto.sln
+├── ProyectoConsola/               ← punto de entrada (ejecutable)
+│   ├── ProyectoConsola.csproj     ← referencia a ProyectoLogica
+│   └── Program.cs
+└── ProyectoLogica/                ← lógica del negocio (class library)
+    ├── ProyectoLogica.csproj
+    ├── Persona.cs
+    ├── PersonaService.cs
+    └── Data/
+        └── PersonaRepository.cs
 ```
 
-**Ejemplo de la capa Servicio usando el Repositorio:**
+**Dependencia:** `ProyectoConsola` → `ProyectoLogica`
+
+Para crear esta estructura desde cero:
+```bash
+dotnet new sln -n Proyecto
+dotnet new classlib -n ProyectoLogica
+dotnet new console -n ProyectoConsola
+dotnet sln add ProyectoLogica/ProyectoLogica.csproj
+dotnet sln add ProyectoConsola/ProyectoConsola.csproj
+dotnet add ProyectoConsola/ProyectoConsola.csproj reference ProyectoLogica/ProyectoLogica.csproj
+```
+
+**Ejemplo completo: la capa Servicio usando el Repositorio:**
 ```csharp
+// ProyectoLogica/PersonaService.cs
 public class PersonaService
 {
-    private PersonaRepositorio _repositorio = new PersonaRepositorio();
+    private readonly PersonaRepository _repository;
 
-    public void AgregarPersona(string nombre, int edad, string email)
+    public PersonaService(string rutaArchivo)
     {
-        var personas = _repositorio.ObtenerTodos();
-        personas.Add(new Persona { Nombre = nombre, Edad = edad, Email = email });
-        _repositorio.Guardar(personas);
+        _repository = new PersonaRepository(rutaArchivo);
     }
 
-    public List<Persona> ObtenerPersonas()
+    public void AgregarPersona(Persona persona)
     {
-        return _repositorio.ObtenerTodos();
+        List<Persona> personas = _repository.Leer();
+        personas.Add(persona);
+        _repository.Guardar(personas);
+    }
+
+    public List<Persona> ObtenerTodos()
+    {
+        return _repository.Leer();
+    }
+
+    public List<Persona> ObtenerMayores()
+    {
+        return _repository.Leer().Where(p => p.EsMayor()).ToList();
     }
 }
 ```
@@ -375,22 +430,23 @@ Seguir estas prácticas evita errores comunes y hace el código más robusto:
 **1. Siempre leer antes de guardar**
 ```csharp
 // CORRECTO: leer primero, agregar, luego guardar
-var lista = repositorio.ObtenerTodos();
+var lista = repository.Leer();
 lista.Add(nuevoElemento);
-repositorio.Guardar(lista);
+repository.Guardar(lista);
 
 // INCORRECTO: sobreescribe con una lista de un solo elemento
-repositorio.Guardar(new List<Persona> { nuevoElemento });
+repository.Guardar(new List<Persona> { nuevoElemento });
 ```
 
 **2. Usar rutas configurables, no hardcodeadas profundamente**
 ```csharp
-public class PersonaRepositorio
+// ProyectoLogica/Data/PersonaRepository.cs
+public class PersonaRepository
 {
-    // La ruta se puede configurar desde afuera si es necesario
-    private string _rutaArchivo;
+    // La ruta se recibe por constructor desde el Service
+    private readonly string _rutaArchivo;
 
-    public PersonaRepositorio(string rutaArchivo = "datos/personas.json")
+    public PersonaRepository(string rutaArchivo)
     {
         _rutaArchivo = rutaArchivo;
     }
@@ -399,7 +455,7 @@ public class PersonaRepositorio
 
 **3. Manejar el caso de primera ejecución**
 ```csharp
-public List<Persona> ObtenerTodos()
+public List<Persona> Leer()
 {
     // Si el archivo no existe aún (primera vez que se corre la app)
     if (!File.Exists(_rutaArchivo))
@@ -407,18 +463,18 @@ public List<Persona> ObtenerTodos()
 
     string json = File.ReadAllText(_rutaArchivo);
 
-    // Si el archivo existe pero está vacío o el JSON es inválido
+    // Si el archivo existe pero está vacío
     if (string.IsNullOrWhiteSpace(json))
         return new List<Persona>();
 
-    // El ?? evita un null si DeserializeObject devuelve null
-    return JsonConvert.DeserializeObject<List<Persona>>(json) ?? new List<Persona>();
+    // El ?? evita un null si Deserialize devuelve null
+    return JsonSerializer.Deserialize<List<Persona>>(json) ?? new List<Persona>();
 }
 ```
 
 **4. Verificar null después de deserializar**
 ```csharp
-var persona = JsonConvert.DeserializeObject<Persona>(json);
+var persona = JsonSerializer.Deserialize<Persona>(json);
 if (persona == null)
 {
     Console.WriteLine("Error: no se pudo deserializar el objeto.");
@@ -445,9 +501,9 @@ Las operaciones de archivo pueden fallar por muchos motivos: el archivo fue elim
 ```csharp
 using System;
 using System.IO;
-using Newtonsoft.Json;
+using System.Text.Json;
 
-public List<Persona> ObtenerTodos()
+public List<Persona> Leer()
 {
     try
     {
@@ -458,7 +514,7 @@ public List<Persona> ObtenerTodos()
         }
 
         string json = File.ReadAllText(_rutaArchivo);
-        return JsonConvert.DeserializeObject<List<Persona>>(json) ?? new List<Persona>();
+        return JsonSerializer.Deserialize<List<Persona>>(json) ?? new List<Persona>();
     }
     catch (JsonException ex)
     {
@@ -476,7 +532,7 @@ public void Guardar(List<Persona> lista)
 {
     try
     {
-        string json = JsonConvert.SerializeObject(lista, Formatting.Indented);
+        string json = JsonSerializer.Serialize(lista, _opciones);
         File.WriteAllText(_rutaArchivo, json);
     }
     catch (IOException ex)
@@ -494,10 +550,12 @@ public void Guardar(List<Persona> lista)
 
 | Concepto | Herramienta / Método |
 |---|---|
-| Serializar objeto a JSON | `JsonConvert.SerializeObject(objeto)` |
-| Serializar con formato | `JsonConvert.SerializeObject(objeto, Formatting.Indented)` |
-| Deserializar JSON a objeto | `JsonConvert.DeserializeObject<Tipo>(json)` |
+| Serializar objeto a JSON | `JsonSerializer.Serialize(objeto, opciones)` |
+| Serializar con formato | `new JsonSerializerOptions { WriteIndented = true }` |
+| Deserializar JSON a objeto | `JsonSerializer.Deserialize<Tipo>(json)` |
 | Escribir archivo | `File.WriteAllText(ruta, contenido)` |
 | Leer archivo | `File.ReadAllText(ruta)` |
 | Verificar existencia | `File.Exists(ruta)` |
-| Clase que encapsula I/O | `Repositorio` (patrón de diseño) |
+| Clase que encapsula I/O | `Repository` en `ProyectoLogica/Data/` |
+| Clase que orquesta la lógica | `Service` en `ProyectoLogica/` |
+| Punto de entrada | `Program.cs` en `ProyectoConsola/` |
