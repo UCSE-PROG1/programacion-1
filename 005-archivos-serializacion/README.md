@@ -93,6 +93,8 @@ using System.Text.Json;
 
 > `System.Text.Json` está disponible de forma nativa desde .NET Core 3.0 en adelante. No requiere ningún `dotnet add package`.
 
+> **Nota:** En esta unidad vamos a colocar la lógica de archivos dentro de `ProyectoLogica`. En la **Unidad 6** vamos a ver cómo reorganizar mejor dónde accedemos a los archivos.
+
 ---
 
 ## 5. Serializar un Objeto a JSON
@@ -100,16 +102,18 @@ using System.Text.Json;
 El método principal es `JsonSerializer.Serialize()`. Recibe un objeto C# y devuelve un `string` con el JSON correspondiente.
 
 ```csharp
-using System.Text.Json;
-
+// ProyectoLogica/Persona.cs
 public class Persona
 {
     public string Nombre { get; set; }
     public int Edad { get; set; }
     public string Email { get; set; }
 }
+```
 
-// --- Uso ---
+```csharp
+// ProyectoLogica/Data/PersonaRepository.cs
+using System.Text.Json;
 
 var persona = new Persona
 {
@@ -120,14 +124,12 @@ var persona = new Persona
 
 // Serialización compacta (una sola línea)
 string jsonCompacto = JsonSerializer.Serialize(persona);
-Console.WriteLine(jsonCompacto);
-// Salida: {"Nombre":"Juan","Edad":30,"Email":"juan@email.com"}
+// Resultado: {"Nombre":"Juan","Edad":30,"Email":"juan@email.com"}
 
 // Serialización con formato (más legible)
 var opciones = new JsonSerializerOptions { WriteIndented = true };
 string jsonFormateado = JsonSerializer.Serialize(persona, opciones);
-Console.WriteLine(jsonFormateado);
-// Salida:
+// Resultado:
 // {
 //   "Nombre": "Juan",
 //   "Edad": 30,
@@ -144,6 +146,7 @@ Console.WriteLine(jsonFormateado);
 El método es `JsonSerializer.Deserialize<T>()`, donde `T` es el tipo al que queremos convertir el JSON. Recibe el string JSON y devuelve un objeto del tipo indicado.
 
 ```csharp
+// ProyectoLogica/Data/PersonaRepository.cs
 using System.Text.Json;
 
 string jsonString = @"{
@@ -154,10 +157,9 @@ string jsonString = @"{
 
 // Deserializar: convierte el texto JSON en un objeto Persona
 Persona persona = JsonSerializer.Deserialize<Persona>(jsonString);
-
-Console.WriteLine(persona.Nombre);  // Ana
-Console.WriteLine(persona.Edad);    // 25
-Console.WriteLine(persona.Email);   // ana@email.com
+// persona.Nombre → "Ana"
+// persona.Edad   → 25
+// persona.Email  → "ana@email.com"
 ```
 
 > Los nombres de las propiedades en el JSON deben coincidir con los nombres de las propiedades de la clase C# (por defecto es sensible a mayúsculas y minúsculas).
@@ -177,32 +179,31 @@ Console.WriteLine(persona.Email);   // ana@email.com
 | `File.Exists(ruta)` | Devuelve `true` si el archivo existe, `false` si no |
 
 ```csharp
+// ProyectoLogica/Data/PersonaRepository.cs
 using System.IO;
 using System.Text.Json;
 
-var persona = new Persona { Nombre = "Carlos", Edad = 28, Email = "carlos@email.com" };
-
-// Definir la ruta del archivo
+var opciones = new JsonSerializerOptions { WriteIndented = true };
 string ruta = "persona.json";
 
-var opciones = new JsonSerializerOptions { WriteIndented = true };
-
 // --- GUARDAR ---
+var persona = new Persona { Nombre = "Carlos", Edad = 28, Email = "carlos@email.com" };
 string json = JsonSerializer.Serialize(persona, opciones);
 File.WriteAllText(ruta, json);
-Console.WriteLine("Persona guardada correctamente.");
 
 // --- CARGAR ---
 if (File.Exists(ruta))
 {
     string contenido = File.ReadAllText(ruta);
     Persona personaCargada = JsonSerializer.Deserialize<Persona>(contenido);
-    Console.WriteLine($"Persona cargada: {personaCargada.Nombre}, {personaCargada.Edad} años");
 }
-else
-{
-    Console.WriteLine("El archivo no existe todavía.");
-}
+```
+
+```csharp
+// ProyectoConsola/Program.cs
+PersonaService service = new PersonaService("persona.json");
+Persona cargada = service.ObtenerPorNombre("Carlos");
+Console.WriteLine($"Persona cargada: {cargada.Nombre}, {cargada.Edad} años");
 ```
 
 > Las rutas relativas como `"persona.json"` crean el archivo en el directorio desde donde se ejecuta la aplicación. En proyectos .NET, eso suele ser `bin/Debug/net8.0/`.
@@ -214,32 +215,36 @@ else
 El mismo enfoque funciona para `List<T>`. JSON representa las listas como arrays `[...]`.
 
 ```csharp
+// ProyectoLogica/Data/PersonaRepository.cs
 using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
 
+var opciones = new JsonSerializerOptions { WriteIndented = true };
+string ruta = "personas.json";
+
+// --- GUARDAR LA LISTA ---
 var personas = new List<Persona>
 {
     new Persona { Nombre = "Ana",   Edad = 25, Email = "ana@email.com"   },
     new Persona { Nombre = "Luis",  Edad = 32, Email = "luis@email.com"  },
     new Persona { Nombre = "Maria", Edad = 29, Email = "maria@email.com" }
 };
-
-string ruta = "personas.json";
-
-var opciones = new JsonSerializerOptions { WriteIndented = true };
-
-// --- GUARDAR LA LISTA ---
 string json = JsonSerializer.Serialize(personas, opciones);
 File.WriteAllText(ruta, json);
-Console.WriteLine($"Se guardaron {personas.Count} personas.");
 
 // --- CARGAR LA LISTA ---
 string contenido = File.ReadAllText(ruta);
 List<Persona> personasCargadas = JsonSerializer.Deserialize<List<Persona>>(contenido);
-Console.WriteLine($"Se cargaron {personasCargadas.Count} personas.");
+```
 
-foreach (var p in personasCargadas)
+```csharp
+// ProyectoConsola/Program.cs
+PersonaService service = new PersonaService("personas.json");
+List<Persona> personas = service.ObtenerTodos();
+Console.WriteLine($"Se cargaron {personas.Count} personas.");
+
+foreach (var p in personas)
 {
     Console.WriteLine($"  - {p.Nombre} ({p.Edad} años)");
 }
