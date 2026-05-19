@@ -201,7 +201,7 @@ if (File.Exists(ruta))
 
 ```csharp
 // ProyectoConsola/Program.cs
-PersonaService service = new PersonaService("persona.json");
+PersonaService service = new PersonaService();
 Persona cargada = service.ObtenerPorNombre("Carlos");
 Console.WriteLine($"Persona cargada: {cargada.Nombre}, {cargada.Edad} años");
 ```
@@ -240,7 +240,7 @@ List<Persona> personasCargadas = JsonSerializer.Deserialize<List<Persona>>(conte
 
 ```csharp
 // ProyectoConsola/Program.cs
-PersonaService service = new PersonaService("personas.json");
+PersonaService service = new PersonaService();
 List<Persona> personas = service.ObtenerTodos();
 Console.WriteLine($"Se cargaron {personas.Count} personas.");
 
@@ -298,7 +298,7 @@ public class PersonaRepository
 }
 ```
 
-El **Service** (también en `ProyectoLogica`) usa el repositorio para implementar la lógica de negocio:
+El **Service** (también en `ProyectoLogica`) define la ruta del archivo y se la pasa al repositorio. La consola no sabe nada del archivo:
 
 ```csharp
 // ProyectoLogica/PersonaService.cs
@@ -306,9 +306,9 @@ public class PersonaService
 {
     private readonly PersonaRepository _repository;
 
-    public PersonaService(string rutaArchivo)
+    public PersonaService()
     {
-        _repository = new PersonaRepository(rutaArchivo);
+        _repository = new PersonaRepository("personas.json");
     }
 
     public void AgregarPersona(Persona persona)
@@ -325,11 +325,11 @@ public class PersonaService
 }
 ```
 
-El `Program.cs` en `ProyectoConsola` solo instancia el service y lo usa:
+El `Program.cs` en `ProyectoConsola` solo instancia el service y lo usa, sin conocer el archivo:
 
 ```csharp
 // ProyectoConsola/Program.cs
-PersonaService service = new PersonaService("personas.json");
+PersonaService service = new PersonaService();
 
 service.AgregarPersona(new Persona { Nombre = "Sofia", Edad = 22, Email = "sofia@email.com" });
 
@@ -402,9 +402,9 @@ public class PersonaService
 {
     private readonly PersonaRepository _repository;
 
-    public PersonaService(string rutaArchivo)
+    public PersonaService()
     {
-        _repository = new PersonaRepository(rutaArchivo);
+        _repository = new PersonaRepository("personas.json");
     }
 
     public void AgregarPersona(Persona persona)
@@ -443,12 +443,26 @@ repository.Guardar(lista);
 repository.Guardar(new List<Persona> { nuevoElemento });
 ```
 
-**2. Usar rutas configurables, no hardcodeadas profundamente**
+**2. La ruta del archivo la define el Service, no la consola**
+```csharp
+// ProyectoLogica/PersonaService.cs
+public class PersonaService
+{
+    private readonly PersonaRepository _repository;
+
+    public PersonaService()
+    {
+        // El nombre del archivo lo decide el Service, no quien lo usa
+        _repository = new PersonaRepository("personas.json");
+    }
+}
+```
+
 ```csharp
 // ProyectoLogica/Data/PersonaRepository.cs
 public class PersonaRepository
 {
-    // La ruta se recibe por constructor desde el Service
+    // La ruta la recibe por constructor desde el Service
     private readonly string _rutaArchivo;
 
     public PersonaRepository(string rutaArchivo)
