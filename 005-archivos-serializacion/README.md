@@ -84,14 +84,26 @@ En la práctica:
 
 ## 4. Configuración del Proyecto
 
-Para trabajar con JSON en C# usamos el namespace **`System.Text.Json`**, que viene incluido en .NET sin necesidad de instalar ningún paquete externo.
+Para trabajar con JSON en C# usamos la biblioteca **Newtonsoft.Json**, también conocida como **Json.NET**. Es la librería de serialización JSON más popular del ecosistema .NET.
+
+**Instalar el paquete en `ProyectoLogica` vía terminal:**
+```bash
+dotnet add ProyectoLogica/ProyectoLogica.csproj package Newtonsoft.Json
+```
+
+Esto agrega automáticamente la referencia al `.csproj`:
+```xml
+<ItemGroup>
+  <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+</ItemGroup>
+```
 
 **Agregar el using en los archivos que lo necesiten:**
 ```csharp
-using System.Text.Json;
+using Newtonsoft.Json;
 ```
 
-> `System.Text.Json` está disponible de forma nativa desde .NET Core 3.0 en adelante. No requiere ningún `dotnet add package`.
+> El paquete se instala en `ProyectoLogica` porque es ahí donde vive la lógica de archivos. `ProyectoConsola` no necesita instalarlo.
 
 > **Nota:** En esta unidad vamos a colocar la lógica de archivos dentro de `ProyectoLogica`. En la **Unidad 6** vamos a ver cómo reorganizar mejor dónde accedemos a los archivos.
 
@@ -113,7 +125,7 @@ public class Persona
 
 ```csharp
 // ProyectoLogica/Data/PersonaRepository.cs
-using System.Text.Json;
+using Newtonsoft.Json;
 
 var persona = new Persona
 {
@@ -123,12 +135,11 @@ var persona = new Persona
 };
 
 // Serialización compacta (una sola línea)
-string jsonCompacto = JsonSerializer.Serialize(persona);
+string jsonCompacto = JsonConvert.SerializeObject(persona);
 // Resultado: {"Nombre":"Juan","Edad":30,"Email":"juan@email.com"}
 
 // Serialización con formato (más legible)
-var opciones = new JsonSerializerOptions { WriteIndented = true };
-string jsonFormateado = JsonSerializer.Serialize(persona, opciones);
+string jsonFormateado = JsonConvert.SerializeObject(persona, Formatting.Indented);
 // Resultado:
 // {
 //   "Nombre": "Juan",
@@ -137,7 +148,7 @@ string jsonFormateado = JsonSerializer.Serialize(persona, opciones);
 // }
 ```
 
-> Para guardar en un archivo se prefiere `WriteIndented = true` porque el archivo es más fácil de leer e inspeccionar manualmente.
+> Para guardar en un archivo se prefiere `Formatting.Indented` porque el archivo es más fácil de leer e inspeccionar manualmente.
 
 ---
 
@@ -147,7 +158,7 @@ El método es `JsonSerializer.Deserialize<T>()`, donde `T` es el tipo al que que
 
 ```csharp
 // ProyectoLogica/Data/PersonaRepository.cs
-using System.Text.Json;
+using Newtonsoft.Json;
 
 string jsonString = @"{
   ""Nombre"": ""Ana"",
@@ -156,7 +167,7 @@ string jsonString = @"{
 }";
 
 // Deserializar: convierte el texto JSON en un objeto Persona
-Persona persona = JsonSerializer.Deserialize<Persona>(jsonString);
+Persona persona = JsonConvert.DeserializeObject<Persona>(jsonString);
 // persona.Nombre → "Ana"
 // persona.Edad   → 25
 // persona.Email  → "ana@email.com"
@@ -181,21 +192,20 @@ Persona persona = JsonSerializer.Deserialize<Persona>(jsonString);
 ```csharp
 // ProyectoLogica/Data/PersonaRepository.cs
 using System.IO;
-using System.Text.Json;
+using Newtonsoft.Json;
 
-var opciones = new JsonSerializerOptions { WriteIndented = true };
 string ruta = "persona.json";
 
 // --- GUARDAR ---
 var persona = new Persona { Nombre = "Carlos", Edad = 28, Email = "carlos@email.com" };
-string json = JsonSerializer.Serialize(persona, opciones);
+string json = JsonConvert.SerializeObject(persona, Formatting.Indented);
 File.WriteAllText(ruta, json);
 
 // --- CARGAR ---
 if (File.Exists(ruta))
 {
     string contenido = File.ReadAllText(ruta);
-    Persona personaCargada = JsonSerializer.Deserialize<Persona>(contenido);
+    Persona personaCargada = JsonConvert.DeserializeObject<Persona>(contenido);
 }
 ```
 
@@ -218,9 +228,8 @@ El mismo enfoque funciona para `List<T>`. JSON representa las listas como arrays
 // ProyectoLogica/Data/PersonaRepository.cs
 using System.Collections.Generic;
 using System.IO;
-using System.Text.Json;
+using Newtonsoft.Json;
 
-var opciones = new JsonSerializerOptions { WriteIndented = true };
 string ruta = "personas.json";
 
 // --- GUARDAR LA LISTA ---
@@ -230,12 +239,12 @@ var personas = new List<Persona>
     new Persona { Nombre = "Luis",  Edad = 32, Email = "luis@email.com"  },
     new Persona { Nombre = "Maria", Edad = 29, Email = "maria@email.com" }
 };
-string json = JsonSerializer.Serialize(personas, opciones);
+string json = JsonConvert.SerializeObject(personas, Formatting.Indented);
 File.WriteAllText(ruta, json);
 
 // --- CARGAR LA LISTA ---
 string contenido = File.ReadAllText(ruta);
-List<Persona> personasCargadas = JsonSerializer.Deserialize<List<Persona>>(contenido);
+List<Persona> personasCargadas = JsonConvert.DeserializeObject<List<Persona>>(contenido);
 ```
 
 ```csharp
@@ -262,12 +271,11 @@ En la arquitectura de dos proyectos, el repositorio vive en `ProyectoLogica/Data
 // ProyectoLogica/Data/PersonaRepository.cs
 using System.Collections.Generic;
 using System.IO;
-using System.Text.Json;
+using Newtonsoft.Json;
 
 public class PersonaRepository
 {
     private readonly string _rutaArchivo;
-    private readonly JsonSerializerOptions _opciones = new JsonSerializerOptions { WriteIndented = true };
 
     public PersonaRepository(string rutaArchivo)
     {
@@ -284,7 +292,7 @@ public class PersonaRepository
             return new List<Persona>();
 
         string json = File.ReadAllText(_rutaArchivo);
-        return JsonSerializer.Deserialize<List<Persona>>(json) ?? new List<Persona>();
+        return JsonConvert.DeserializeObject<List<Persona>>(json) ?? new List<Persona>();
     }
 
     /// <summary>
@@ -292,7 +300,7 @@ public class PersonaRepository
     /// </summary>
     public void Guardar(List<Persona> lista)
     {
-        string json = JsonSerializer.Serialize(lista, _opciones);
+        string json = JsonConvert.SerializeObject(lista, Formatting.Indented);
         File.WriteAllText(_rutaArchivo, json);
     }
 }
@@ -486,14 +494,14 @@ public List<Persona> Leer()
     if (string.IsNullOrWhiteSpace(json))
         return new List<Persona>();
 
-    // El ?? evita un null si Deserialize devuelve null
-    return JsonSerializer.Deserialize<List<Persona>>(json) ?? new List<Persona>();
+    // El ?? evita un null si DeserializeObject devuelve null
+    return JsonConvert.DeserializeObject<List<Persona>>(json) ?? new List<Persona>();
 }
 ```
 
 **4. Verificar null después de deserializar**
 ```csharp
-var persona = JsonSerializer.Deserialize<Persona>(json);
+var persona = JsonConvert.DeserializeObject<Persona>(json);
 if (persona == null)
 {
     Console.WriteLine("Error: no se pudo deserializar el objeto.");
@@ -520,7 +528,7 @@ Las operaciones de archivo pueden fallar por muchos motivos: el archivo fue elim
 ```csharp
 using System;
 using System.IO;
-using System.Text.Json;
+using Newtonsoft.Json;
 
 public List<Persona> Leer()
 {
@@ -533,7 +541,7 @@ public List<Persona> Leer()
         }
 
         string json = File.ReadAllText(_rutaArchivo);
-        return JsonSerializer.Deserialize<List<Persona>>(json) ?? new List<Persona>();
+        return JsonConvert.DeserializeObject<List<Persona>>(json) ?? new List<Persona>();
     }
     catch (JsonException ex)
     {
@@ -551,7 +559,7 @@ public void Guardar(List<Persona> lista)
 {
     try
     {
-        string json = JsonSerializer.Serialize(lista, _opciones);
+        string json = JsonConvert.SerializeObject(lista, Formatting.Indented);
         File.WriteAllText(_rutaArchivo, json);
     }
     catch (IOException ex)
@@ -569,9 +577,9 @@ public void Guardar(List<Persona> lista)
 
 | Concepto | Herramienta / Método |
 |---|---|
-| Serializar objeto a JSON | `JsonSerializer.Serialize(objeto, opciones)` |
-| Serializar con formato | `new JsonSerializerOptions { WriteIndented = true }` |
-| Deserializar JSON a objeto | `JsonSerializer.Deserialize<Tipo>(json)` |
+| Serializar objeto a JSON | `JsonConvert.SerializeObject(objeto)` |
+| Serializar con formato | `JsonConvert.SerializeObject(objeto, Formatting.Indented)` |
+| Deserializar JSON a objeto | `JsonConvert.DeserializeObject<Tipo>(json)` |
 | Escribir archivo | `File.WriteAllText(ruta, contenido)` |
 | Leer archivo | `File.ReadAllText(ruta)` |
 | Verificar existencia | `File.Exists(ruta)` |
