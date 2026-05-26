@@ -4,7 +4,7 @@
 
 - El preparcial debe hacerse en **2 horas**. Si se entrega luego de las 22hs, no se realizaran correcciones ni observaciones.
 - Se debe entregar por GitHub en un repositorio llamado **`Prog1-2026-preparcial1-Apellido`**.
-- El enunciado sirve para medir tiempos de respuesta del alumno o del enunciado.
+- El enunciado sirve para medir tiempos de respuesta del alumno o del enunciado. Sumar al repositorio a gonzaperez2312@gmail.com
 
 ---
 
