@@ -1,5 +1,13 @@
 # Pre-Parcial — Programación I | UCSE
 
+## Instrucciones generales
+
+- El preparcial debe hacerse en **2 horas**. Si se entrega luego, no se realizan correcciones ni observaciones.
+- Se debe entregar por GitHub en un repositorio llamado **`Prog1-2026-preparcial1-Apellido`**.
+- El enunciado sirve para medir tiempos de respuesta del alumno o del enunciado.
+
+---
+
 ## MovilYa — Sistema de gestión de flota vehicular
 
 ---
