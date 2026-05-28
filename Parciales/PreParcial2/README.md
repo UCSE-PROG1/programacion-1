@@ -10,7 +10,7 @@
 
 \- La solución debe estar organizada en \*\*2 proyectos\*\* dentro de la misma solución:
 
-&#x20; 1. Un proyecto de Biblioteca de Clases (`.NET Core` o `.NET Framework`) para la \*\*Lógica de Negocio\*\*.
+&#x20; 1. Un proyecto de Biblioteca de Clases (`.NET Core`) para la \*\*Lógica de Negocio\*\*.
 
 &#x20; 2. Un proyecto de pruebas unitarias utilizando \*\*NUnit\*\* para la \*\*Calidad de Software\*\*.
 
