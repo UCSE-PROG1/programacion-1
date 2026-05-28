@@ -1,4 +1,4 @@
-\# Pre-Parcial — Programación I | UCSE
+\# Pre-Parcial 2 — Programación I | UCSE
 
 
 
