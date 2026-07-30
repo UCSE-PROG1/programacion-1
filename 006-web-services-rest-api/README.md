@@ -4,6 +4,30 @@ En esta unidad aprendemos a construir y consumir **APIs Web** usando ASP.NET Cor
 
 ---
 
+## Tabla de contenido
+
+1. [¿Qué es un Web Service?](#1-qué-es-un-web-service)
+2. [SOAP vs REST](#2-soap-vs-rest)
+3. [¿Qué es REST?](#3-qué-es-rest)
+4. [HTTP: Verbos y Códigos de Estado](#4-http-verbos-y-códigos-de-estado)
+5. [Crear un Proyecto Web API con .NET Core](#5-crear-un-proyecto-web-api-con-net-core)
+6. [Controllers y Endpoints](#6-controllers-y-endpoints)
+7. [Filtrar Resultados con Query Strings](#7-filtrar-resultados-con-query-strings)
+8. [Async en Controllers](#8-async-en-controllers)
+9. [Modelo y DTOs](#9-modelo-y-dtos)
+10. [Validación de Modelos con Data Annotations](#10-validación-de-modelos-con-data-annotations)
+11. [Patrón Servicio en Web API](#11-patrón-servicio-en-web-api)
+12. [Manejo de Errores](#12-manejo-de-errores)
+13. [Inyección de Dependencias](#13-inyección-de-dependencias)
+14. [Logging con ILogger](#14-logging-con-ilogger)
+15. [Configuración de CORS](#15-configuración-de-cors)
+16. [Consumir una API con HttpClient (Cliente)](#16-consumir-una-api-con-httpclient-cliente)
+17. [Probar la API](#17-probar-la-api)
+18. [Arquitectura de la Aplicación Completa](#18-arquitectura-de-la-aplicación-completa)
+19. [Resumen](#resumen)
+
+---
+
 ## 1. ¿Qué es un Web Service?
 
 Un **Web Service** es un componente de software accesible a través de una red (generalmente Internet o una red local) mediante protocolos estándar como HTTP. Permite que dos sistemas distintos se comuniquen e intercambien datos sin importar el lenguaje de programación ni el sistema operativo que usen.
@@ -185,6 +209,8 @@ public class WeatherForecastController : ControllerBase
 }
 ```
 
+> **Nota — Minimal APIs:** .NET también permite definir endpoints sin controllers, directamente en `Program.cs` (`app.MapGet("/api/productos", ...)`). Se llaman **Minimal APIs** y son útiles para servicios muy chicos. En este curso usamos **Controllers**, porque organizan mejor el código a medida que la aplicación crece y combinan naturalmente con el patrón de capas (Controller → Servicio → Repositorio) que venimos usando.
+
 ---
 
 ## 6. Controllers y Endpoints
@@ -274,7 +300,60 @@ public class ProductoController : ControllerBase
 
 ---
 
-## 7. Modelo y DTOs
+## 7. Filtrar Resultados con Query Strings
+
+Además del `id` en la ruta, un endpoint `GET` puede recibir parámetros opcionales por **query string** (lo que va después del `?` en la URL) para filtrar resultados. Se capturan con el atributo `[FromQuery]`.
+
+```
+GET /api/producto?categoria=Electronica
+```
+
+**Ejemplo: filtrar productos por categoría**
+```csharp
+// GET api/producto?categoria=Electronica
+[HttpGet]
+public IActionResult ObtenerTodos([FromQuery] string? categoria)
+{
+    var productos = _servicio.ObtenerTodos();
+
+    if (!string.IsNullOrEmpty(categoria))
+        productos = productos.Where(p => p.Categoria == categoria).ToList();
+
+    return Ok(productos);
+}
+```
+
+> Si el parámetro no se envía (`GET /api/producto`), `categoria` llega en `null` y el filtro simplemente no se aplica. Esto permite que el mismo endpoint sirva tanto para "traer todo" como para "traer filtrado", sin duplicar código.
+
+---
+
+## 8. Async en Controllers
+
+Los métodos de un controller pueden ser **asíncronos** cuando el trabajo que realizan implica esperar una operación de entrada/salida (leer un archivo, consultar una base de datos, llamar a otra API). Usar `async`/`await` libera el hilo del servidor mientras se espera esa operación, permitiendo que la API atienda más peticiones al mismo tiempo.
+
+Ya usamos este patrón del lado del **cliente** en la sección 16 (`HttpClient` + `await`). Del lado del **servidor**, se aplica igual: el método pasa a devolver `Task<IActionResult>` y se le agrega `async`.
+
+**Ejemplo: versión asíncrona de `ObtenerPorId`**
+```csharp
+// GET api/producto/5 (versión asíncrona)
+[HttpGet("{id}")]
+public async Task<IActionResult> ObtenerPorId(int id)
+{
+    var producto = await _servicio.ObtenerPorIdAsync(id);
+    if (producto == null)
+        return NotFound();
+
+    return Ok(producto);
+}
+```
+
+Esto requiere que el servicio (y el repositorio) también expongan una versión asíncrona, por ejemplo usando `File.ReadAllTextAsync` en vez de `File.ReadAllText`.
+
+> En este curso los ejemplos de CRUD se muestran de forma sincrónica por simplicidad, ya que trabajamos con archivos chicos en memoria. Pero es importante reconocer el patrón `async Task<IActionResult>`, porque es el que vas a encontrar en prácticamente cualquier API real (sobre todo con bases de datos).
+
+---
+
+## 9. Modelo y DTOs
 
 El **modelo** (también llamado entidad) es la clase que representa un objeto del dominio de negocio. Es la misma clase que usaríamos en nuestra capa de entidades.
 
@@ -310,7 +389,59 @@ En proyectos simples de este curso, podemos trabajar directamente con los modelo
 
 ---
 
-## 8. Patrón Servicio en Web API
+## 10. Validación de Modelos con Data Annotations
+
+Hasta ahora, si un cliente manda un `POST` con un `Producto` incompleto o con datos inválidos (por ejemplo, precio negativo), el controller lo acepta igual. Para evitar eso, usamos **Data Annotations**: atributos que se agregan a las propiedades del modelo para declarar reglas de validación.
+
+```csharp
+using System.ComponentModel.DataAnnotations;
+
+public class Producto
+{
+    public int Id { get; set; }
+
+    [Required(ErrorMessage = "El nombre es obligatorio")]
+    [StringLength(100, MinimumLength = 2)]
+    public string Nombre { get; set; }
+
+    [Range(0.01, 1000000, ErrorMessage = "El precio debe ser mayor a 0")]
+    public decimal Precio { get; set; }
+
+    public string Categoria { get; set; }
+    public bool Activo { get; set; }
+}
+```
+
+**Atributos de validación más comunes:**
+
+| Atributo | Qué valida |
+|---|---|
+| `[Required]` | El valor no puede ser nulo/vacío |
+| `[Range(min, max)]` | El valor numérico debe estar en un rango |
+| `[StringLength(max, MinimumLength = min)]` | Longitud de un texto |
+| `[EmailAddress]` | El texto tiene formato de email |
+| `[RegularExpression("...")]` | El texto cumple una expresión regular |
+
+**¿Cómo se aplica automáticamente?**
+Gracias al atributo `[ApiController]` (que ya usamos en todos nuestros controllers), ASP.NET Core valida el modelo **antes** de ejecutar el método. Si algo no cumple las reglas, devuelve automáticamente un `400 Bad Request` con el detalle de los errores, sin que tengamos que escribir ese chequeo a mano.
+
+```csharp
+// POST api/producto
+[HttpPost]
+public IActionResult Crear([FromBody] Producto producto)
+{
+    // Si "producto" no cumple las Data Annotations,
+    // esta línea nunca se ejecuta: [ApiController] ya respondió 400 Bad Request
+    _servicio.Agregar(producto);
+    return CreatedAtAction(nameof(ObtenerPorId), new { id = producto.Id }, producto);
+}
+```
+
+> Si quisiéramos controlar la validación manualmente (por ejemplo, sin `[ApiController]`), se hace consultando `if (!ModelState.IsValid) return BadRequest(ModelState);` al inicio del método.
+
+---
+
+## 11. Patrón Servicio en Web API
 
 El controlador no debe contener lógica de negocio. Su única responsabilidad es:
 1. Recibir la petición HTTP
@@ -376,7 +507,49 @@ public class ProductoService
 
 ---
 
-## 9. Inyección de Dependencias
+## 12. Manejo de Errores
+
+Las Data Annotations cubren datos inválidos, pero no cubren **fallos inesperados**: el archivo JSON no existe, está corrupto, o hay un error de programación. Si eso pasa y no lo manejamos, el cliente recibe un `500 Internal Server Error` sin ninguna explicación útil.
+
+**Opción 1: `try/catch` en el controller**
+```csharp
+[HttpGet("{id}")]
+public IActionResult ObtenerPorId(int id)
+{
+    try
+    {
+        var producto = _servicio.ObtenerPorId(id);
+        if (producto == null)
+            return NotFound();
+
+        return Ok(producto);
+    }
+    catch (Exception ex)
+    {
+        return StatusCode(500, new { mensaje = "Ocurrió un error inesperado", detalle = ex.Message });
+    }
+}
+```
+
+**Opción 2: manejo centralizado (evita repetir `try/catch` en cada endpoint)**
+```csharp
+var app = builder.Build();
+
+if (!app.Environment.IsDevelopment())
+{
+    // En producción, redirige cualquier excepción no controlada a /error
+    app.UseExceptionHandler("/error");
+}
+
+app.MapControllers();
+app.Run();
+```
+
+> En desarrollo, ASP.NET Core ya muestra una página detallada de errores por defecto. La opción centralizada se usa para mostrar un mensaje genérico y seguro en producción, sin exponer detalles internos del servidor.
+
+---
+
+## 13. Inyección de Dependencias
 
 La **Inyección de Dependencias** (DI) es un patrón de diseño donde una clase no crea sus propias dependencias, sino que las recibe desde afuera. .NET Core tiene un sistema de DI integrado.
 
@@ -429,7 +602,53 @@ public class ProductoController : ControllerBase
 
 ---
 
-## 10. Configuración de CORS
+## 14. Logging con ILogger
+
+`ILogger<T>` es un servicio que .NET Core registra automáticamente en el contenedor de DI, sin que tengamos que hacer nada en `Program.cs`. Es el ejemplo más directo de inyección de dependencias "gratis" que ofrece el framework, y sirve para dejar rastro de lo que hace la API mientras corre.
+
+```csharp
+public class ProductoController : ControllerBase
+{
+    private readonly ProductoService _servicio;
+    private readonly ILogger<ProductoController> _logger;
+
+    public ProductoController(ProductoService servicio, ILogger<ProductoController> logger)
+    {
+        _servicio = servicio;
+        _logger = logger;
+    }
+
+    [HttpGet("{id}")]
+    public IActionResult ObtenerPorId(int id)
+    {
+        _logger.LogInformation("Buscando producto con id {Id}", id);
+
+        var producto = _servicio.ObtenerPorId(id);
+        if (producto == null)
+        {
+            _logger.LogWarning("Producto con id {Id} no encontrado", id);
+            return NotFound();
+        }
+
+        return Ok(producto);
+    }
+}
+```
+
+**Niveles de log más usados:**
+
+| Método | Cuándo usarlo |
+|---|---|
+| `LogInformation` | Eventos normales (una petición se procesó) |
+| `LogWarning` | Algo raro pero no fatal (recurso no encontrado) |
+| `LogError` | Una excepción o fallo real |
+| `LogDebug` | Detalle solo útil mientras se desarrolla |
+
+Estos logs aparecen en la consola mientras corremos `dotnet run`, y son la primera herramienta para diagnosticar qué está pasando cuando algo no funciona como se espera.
+
+---
+
+## 15. Configuración de CORS
 
 **CORS** (Cross-Origin Resource Sharing) es un mecanismo de seguridad del navegador que bloquea las peticiones a un dominio diferente al de la página actual. Por ejemplo, si tu frontend corre en `http://localhost:3000` y tu API en `http://localhost:5000`, el navegador bloqueará las peticiones por defecto.
 
@@ -464,7 +683,7 @@ app.Run();
 
 ---
 
-## 11. Consumir una API con HttpClient (Cliente)
+## 16. Consumir una API con HttpClient (Cliente)
 
 Para que nuestra aplicación consuma una API externa (o la propia API), usamos `HttpClient`. Esta clase permite enviar peticiones HTTP y recibir respuestas.
 
@@ -528,7 +747,7 @@ Console.WriteLine($"Código de respuesta: {(int)respuesta.StatusCode} {respuesta
 
 ---
 
-## 12. Probar la API
+## 17. Probar la API
 
 Existen varias formas de probar los endpoints de una API mientras desarrollamos:
 
@@ -593,7 +812,7 @@ app.Run();
 
 ---
 
-## 13. Arquitectura de la Aplicación Completa
+## 18. Arquitectura de la Aplicación Completa
 
 Cuando combinamos todo lo visto en el curso, la arquitectura completa de una aplicación con Web API queda así:
 
@@ -608,8 +827,8 @@ Cuando combinamos todo lo visto en el curso, la arquitectura completa de una apl
 ┌──────────────────▼──────────────────────────────┐
 │            CONTROLADORES (API Layer)            │
 │    ProductoController, ClienteController, ...   │
-│    Reciben la petición, llaman al servicio,     │
-│    devuelven la respuesta HTTP adecuada         │
+│    Reciben la petición, validan el modelo,      │
+│    llaman al servicio, devuelven la respuesta   │
 └──────────────────┬──────────────────────────────┘
                    │
 ┌──────────────────▼──────────────────────────────┐
@@ -674,8 +893,13 @@ MiApi/
 | Crear proyecto API | `dotnet new webapi -n MiApi` |
 | Definir controlador | `[ApiController]`, `[Route("api/[controller]")]` |
 | Definir endpoints | `[HttpGet]`, `[HttpPost]`, `[HttpPut]`, `[HttpDelete]` |
+| Filtrar por query string | `[FromQuery]` |
+| Endpoints asíncronos | `async Task<IActionResult>` + `await` |
 | Devolver respuesta | `Ok()`, `NotFound()`, `CreatedAtAction()`, `NoContent()` |
+| Validar el modelo | Data Annotations (`[Required]`, `[Range]`, ...) + `[ApiController]` |
+| Manejar errores | `try/catch`, `app.UseExceptionHandler(...)` |
 | Inyectar dependencias | `builder.Services.AddSingleton<MiServicio>()` |
+| Registrar actividad | `ILogger<T>` (`LogInformation`, `LogWarning`, `LogError`) |
 | Habilitar CORS | `builder.Services.AddCors(...)` + `app.UseCors(...)` |
 | Consumir API | `HttpClient` + `GetAsync` / `PostAsync` |
 | Probar endpoints | Swagger (`/swagger`), curl, navegador |
