@@ -578,8 +578,8 @@ public IActionResult Crear([FromBody] ProductoRequest request)
     var producto = request.AProducto();          // el Controller mapea Request → Modelo
     _servicio.Agregar(producto);                 // el Servicio recibe y guarda un Producto
 
-    // 201 Created + el ProductoResponse completo (con el Id ya asignado)
-    return Created($"/api/producto/{producto.Id}", producto.AProductoResponse());
+    // 201 Created + solo el ProductoResponse (sin Location ni nada más)
+    return StatusCode(201, producto.AProductoResponse());
 }
 
 // PUT api/producto/5
@@ -587,15 +587,17 @@ public IActionResult Crear([FromBody] ProductoRequest request)
 public IActionResult Actualizar(int id, [FromBody] ProductoRequest request)
 {
     var producto = request.AProducto();          // el Controller mapea Request → Modelo
+    producto.Id = id;                            // el Id viene de la URL, no del Request
+
     bool actualizado = _servicio.Actualizar(id, producto);
     if (!actualizado)
         return NotFound();
 
-    return NoContent();                          // 204 No Content
+    return Ok(producto.AProductoResponse());     // 200 OK + el ProductoResponse actualizado
 }
 ```
 
-> Para el `POST` preferimos `Created(uri, response)` en vez de `CreatedAtAction(...)`: devuelve el mismo `201 Created` con el `ProductoResponse` completo (incluido el `Id` que asignó el Servicio) y el header `Location`, pero sin depender de repetir el nombre del método (`nameof(ObtenerPorId)`).
+> Tanto el `POST` como el `PUT` devuelven **solo la entidad** (el `ProductoResponse`) y nada más: `StatusCode(201, response)` para el `POST` (sin `Location` ni depender de `nameof(ObtenerPorId)`) y `Ok(response)` para el `PUT` (en vez de `NoContent`), para que el cliente reciba siempre el estado final del recurso.
 
 Para `Actualizar` (`PUT`) esto también simplifica las cosas: en vez de "aplicar" el Request sobre el `Producto` existente (lo que sí necesitaría un tercer método de mapeo mezclando ambos tipos), el Controller arma un `Producto` transitorio con `request.AProducto()` y se lo pasa al Servicio, que ya sabe copiar esos campos sobre el existente — igual que hacía antes de introducir DTOs (sección 11).
 
@@ -650,7 +652,7 @@ public IActionResult Crear([FromBody] ProductoRequest request)
     // esta línea nunca se ejecuta: [ApiController] ya respondió 400 Bad Request
     var producto = request.AProducto();
     _servicio.Agregar(producto);
-    return Created($"/api/producto/{producto.Id}", producto.AProductoResponse());
+    return StatusCode(201, producto.AProductoResponse());
 }
 ```
 
@@ -759,17 +761,20 @@ public class ProductoController : ControllerBase
     {
         var producto = request.AProducto();
         _servicio.Agregar(producto);
-        return Created($"/api/producto/{producto.Id}", producto.AProductoResponse());
+        return StatusCode(201, producto.AProductoResponse());
     }
 
     [HttpPut("{id}")]
     public IActionResult Actualizar(int id, [FromBody] ProductoRequest request)
     {
-        bool actualizado = _servicio.Actualizar(id, request.AProducto());
+        var producto = request.AProducto();
+        producto.Id = id;    // el Id viene de la URL, no del Request
+
+        bool actualizado = _servicio.Actualizar(id, producto);
         if (!actualizado)
             return NotFound();
 
-        return NoContent();
+        return Ok(producto.AProductoResponse());
     }
 
     [HttpDelete("{id}")]
@@ -1200,7 +1205,7 @@ MiSolucion/
 | Definir endpoints | `[HttpGet]`, `[HttpPost]`, `[HttpPut]`, `[HttpDelete]` |
 | Filtrar por query string | `[FromQuery]` |
 | Mapear DTO (Request/Response) ↔ Modelo, en el Controller | Métodos de extensión (`AProductoResponse()`, `AProducto()`) |
-| Devolver respuesta | `Ok()`, `NotFound()`, `Created()`, `NoContent()` |
+| Devolver respuesta | `Ok()`, `NotFound()`, `StatusCode(201, ...)`, `NoContent()` |
 | Validar el DTO de entrada | Data Annotations (`[Required]`, `[Range]`, ...) + `[ApiController]` |
 | Manejar errores | `try/catch`, `app.UseExceptionHandler(...)` |
 | Inyectar dependencias | `builder.Services.AddSingleton<MiServicio>()` |
