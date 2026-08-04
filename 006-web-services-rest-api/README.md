@@ -433,7 +433,7 @@ public class Producto
 ```
 
 **¿Qué es un DTO (Data Transfer Object)?**
-Un DTO es un objeto simplificado que usamos para transferir datos entre capas o entre cliente y servidor, cuando no queremos exponer el modelo completo.
+Un DTO es un objeto simplificado que usamos para transferir datos entre capas o entre cliente y servidor, cuando no queremos exponer el modelo completo. **Request** y **Response** son los dos DTOs que vamos a usar en esta materia: un **Request** es el DTO que recibimos del cliente (el body de un `POST`/`PUT`), y un **Response** es el DTO que le devolvemos (el body de la respuesta). Los dos son DTOs — la única diferencia es la dirección en la que viaja el dato.
 
 **¿Cuándo usar DTOs?**
 - Para ocultar campos sensibles (contraseñas, claves internas)
@@ -467,8 +467,8 @@ MiSolucion/
     ├── Controllers/
     │   └── ProductoController.cs
     ├── DTOs/
-    │   ├── ProductoDto.cs
-    │   ├── ProductoGuardarDto.cs
+    │   ├── ProductoRequest.cs
+    │   ├── ProductoResponse.cs
     │   └── ProductoMapper.cs
     └── Program.cs
 ```
@@ -485,9 +485,9 @@ dotnet add MiApi/MiApi.csproj reference MiServicio/MiServicio.csproj
 **Los DTOs que vamos a usar de acá en adelante:**
 
 ```csharp
-// DTOs/ProductoDto.cs
-// Para exponer un producto al cliente (respuestas de GET, POST, PUT)
-public class ProductoDto
+// DTOs/ProductoResponse.cs
+// Response: para exponer un producto al cliente (respuestas de GET, POST, PUT)
+public class ProductoResponse
 {
     public int Id { get; set; }
     public string Nombre { get; set; }
@@ -497,10 +497,10 @@ public class ProductoDto
 ```
 
 ```csharp
-// DTOs/ProductoGuardarDto.cs
-// Para recibir datos al crear o actualizar (sin Id: en POST lo genera el
-// servidor, en PUT ya viene en la URL)
-public class ProductoGuardarDto
+// DTOs/ProductoRequest.cs
+// Request: para recibir datos al crear o actualizar (sin Id: en POST lo
+// genera el servidor, en PUT ya viene en la URL)
+public class ProductoRequest
 {
     public string Nombre { get; set; }
     public decimal Precio { get; set; }
@@ -511,23 +511,23 @@ public class ProductoGuardarDto
 ### Convertir entre DTO y Modelo (mapeo)
 
 Cuando se usan DTOs, hace falta convertir en las dos direcciones:
-- **Modelo → DTO:** al responder al cliente (ocultamos u ordenamos los datos que se muestran)
-- **DTO → Modelo:** al recibir datos del cliente (armamos o actualizamos la entidad que se guarda)
+- **Modelo → Response:** al responder al cliente (ocultamos u ordenamos los datos que se muestran)
+- **Request → Modelo:** al recibir datos del cliente (armamos o actualizamos la entidad que se guarda)
 
 A esta conversión se la llama **mapeo**. Es código repetitivo (copiar propiedad por propiedad), así que conviene concentrarlo en un solo lugar (`ProductoMapper`) en vez de repetirlo en cada método del servicio.
 
 **Mapeo manual con métodos de extensión**
 
-Una forma prolija de mapear es escribir métodos de extensión, para poder llamarlos como si fueran parte de la clase original (`producto.AProductoDto()`):
+Una forma prolija de mapear es escribir métodos de extensión, para poder llamarlos como si fueran parte de la clase original (`producto.AProductoResponse()`):
 
 ```csharp
 // DTOs/ProductoMapper.cs
 public static class ProductoMapper
 {
-    // Modelo → DTO
-    public static ProductoDto AProductoDto(this Producto producto)
+    // Modelo → Response
+    public static ProductoResponse AProductoResponse(this Producto producto)
     {
-        return new ProductoDto
+        return new ProductoResponse
         {
             Id        = producto.Id,
             Nombre    = producto.Nombre,
@@ -536,73 +536,71 @@ public static class ProductoMapper
         };
     }
 
-    // DTO → Modelo nuevo (para crear)
-    public static Producto AProducto(this ProductoGuardarDto dto)
+    // Request → Modelo nuevo (para crear)
+    public static Producto AProducto(this ProductoRequest request)
     {
         return new Producto
         {
-            Nombre    = dto.Nombre,
-            Precio    = dto.Precio,
-            Categoria = dto.Categoria,
+            Nombre    = request.Nombre,
+            Precio    = request.Precio,
+            Categoria = request.Categoria,
             Activo    = true
         };
     }
 
-    // DTO → Modelo existente (para actualizar sin perder Id ni Activo)
-    public static void AplicarA(this ProductoGuardarDto dto, Producto producto)
-    {
-        producto.Nombre    = dto.Nombre;
-        producto.Precio    = dto.Precio;
-        producto.Categoria = dto.Categoria;
-    }
 }
 ```
 
-**¿Dónde se usa el mapeo?** En la capa de **Servicio** (sección 11), nunca en el Controller: el Controller solo recibe/devuelve DTOs, y el Servicio es el que sabe convertirlos a Modelo para trabajar con el Repositorio.
+> Notar que el mapper solo tiene los dos métodos: **Modelo → Response** y **Request → Modelo**. No hace falta un método para "aplicar un Request sobre un Producto existente" — ya vamos a ver por qué al hablar de `Actualizar`.
+
+**¿Dónde se usa el mapeo? En el Controller, no en el Servicio**
+
+Podría parecer natural que el Servicio reciba el `Request` y devuelva el `Response` (así lo planteamos en un principio), pero eso **no compila**: el proyecto `MiServicio` no puede conocer `ProductoRequest` ni `ProductoResponse`, porque esas clases viven en `MiApi`. Y `MiApi` ya referencia a `MiServicio` (para usar `Producto` y `ProductoService`). Si `MiServicio` tuviera que referenciar a `MiApi` para usar los DTOs, tendríamos una **referencia circular** (`MiApi → MiServicio → MiApi`), y una solución de .NET no puede compilar con dos proyectos que se referencian mutuamente.
+
+La solución es que el **Servicio no sepa que existen los DTOs**: recibe y devuelve `Producto` únicamente, igual que en la sección 11. Es el **Controller** — que ya referencia a los dos (`MiServicio` para el modelo, y sus propios DTOs) — el que llama a los métodos de mapeo antes de pasarle datos al Servicio, y después de recibirlos:
 
 ```csharp
-public class ProductoService
+// GET api/producto/5
+[HttpGet("{id}")]
+public IActionResult ObtenerPorId(int id)
 {
-    private ProductoRepositorio _repositorio = new ProductoRepositorio();
+    var producto = _servicio.ObtenerPorId(id);   // el Servicio devuelve Producto
+    if (producto == null)
+        return NotFound();
 
-    public ProductoDto? ObtenerPorId(int id)
-    {
-        var producto = _repositorio.ObtenerTodos().FirstOrDefault(p => p.Id == id);
-        return producto?.AProductoDto();   // Modelo → DTO
-    }
+    return Ok(producto.AProductoResponse());     // el Controller mapea Modelo → Response
+}
 
-    public ProductoDto Agregar(ProductoGuardarDto dto)
-    {
-        var productos = _repositorio.ObtenerTodos();
+// POST api/producto
+[HttpPost]
+public IActionResult Crear([FromBody] ProductoRequest request)
+{
+    var producto = request.AProducto();          // el Controller mapea Request → Modelo
+    _servicio.Agregar(producto);                 // el Servicio recibe y guarda un Producto
 
-        var producto = dto.AProducto();    // DTO → Modelo
-        producto.Id = productos.Count > 0 ? productos.Max(p => p.Id) + 1 : 1;
-
-        productos.Add(producto);
-        _repositorio.Guardar(productos);
-
-        return producto.AProductoDto();    // Modelo → DTO, para la respuesta
-    }
+    return CreatedAtAction(nameof(ObtenerPorId), new { id = producto.Id }, producto.AProductoResponse());
 }
 ```
+
+Para `Actualizar` esto también simplifica las cosas: en vez de "aplicar" el Request sobre el `Producto` existente (lo que sí necesitaría un tercer método de mapeo mezclando ambos tipos), el Controller arma un `Producto` transitorio con `request.AProducto()` y se lo pasa al Servicio, que ya sabe copiar esos campos sobre el existente — igual que hacía antes de introducir DTOs (sección 11).
 
 > **Librerías de mapeo automático:** en proyectos reales, con muchos DTOs, escribir todos los métodos de mapeo a mano se vuelve repetitivo. Librerías como **AutoMapper** generan el mapeo automáticamente a partir de la coincidencia de nombres de propiedades. Está fuera del alcance de este curso, pero es útil saber que existe.
 
-**De acá en adelante, todos los ejemplos de este apunte van a usar estos DTOs:** el Controller recibe y devuelve `ProductoDto` / `ProductoGuardarDto`, y es el Servicio el único que conoce y manipula `Producto` (el modelo).
+**De acá en adelante, todos los ejemplos de este apunte van a usar estos DTOs:** el Controller recibe un `ProductoRequest` y devuelve un `ProductoResponse`, mapeando con `ProductoMapper` en los dos sentidos. El Servicio (sección 11) sigue trabajando pura y exclusivamente con `Producto` — no sabe que los DTOs existen.
 
 ---
 
 ## 10. Validación de Modelos con Data Annotations
 
-Hasta ahora, si un cliente manda un `POST` con un `ProductoGuardarDto` incompleto o con datos inválidos (por ejemplo, precio negativo), el controller lo acepta igual. Para evitar eso, usamos **Data Annotations**: atributos que se agregan a las propiedades para declarar reglas de validación.
+Hasta ahora, si un cliente manda un `POST` con un `ProductoRequest` incompleto o con datos inválidos (por ejemplo, precio negativo), el controller lo acepta igual. Para evitar eso, usamos **Data Annotations**: atributos que se agregan a las propiedades para declarar reglas de validación.
 
-> Las Data Annotations van en el **DTO de entrada** (`ProductoGuardarDto`), no en el modelo (`Producto`). El DTO es lo que efectivamente manda el cliente por HTTP, así que es ahí donde tiene sentido validar; el modelo queda libre de atributos de validación.
+> Las Data Annotations van en el **Request** (`ProductoRequest`), no en el modelo (`Producto`). El Request es lo que efectivamente manda el cliente por HTTP, así que es ahí donde tiene sentido validar; el modelo queda libre de atributos de validación.
 
 ```csharp
-// DTOs/ProductoGuardarDto.cs
+// DTOs/ProductoRequest.cs
 using System.ComponentModel.DataAnnotations;
 
-public class ProductoGuardarDto
+public class ProductoRequest
 {
     [Required(ErrorMessage = "El nombre es obligatorio")]
     [StringLength(100, MinimumLength = 2)]
@@ -626,17 +624,18 @@ public class ProductoGuardarDto
 | `[RegularExpression("...")]` | El texto cumple una expresión regular |
 
 **¿Cómo se aplica automáticamente?**
-Gracias al atributo `[ApiController]` (que ya usamos en todos nuestros controllers), ASP.NET Core valida el DTO **antes** de ejecutar el método. Si algo no cumple las reglas, devuelve automáticamente un `400 Bad Request` con el detalle de los errores, sin que tengamos que escribir ese chequeo a mano.
+Gracias al atributo `[ApiController]` (que ya usamos en todos nuestros controllers), ASP.NET Core valida el Request **antes** de ejecutar el método. Si algo no cumple las reglas, devuelve automáticamente un `400 Bad Request` con el detalle de los errores, sin que tengamos que escribir ese chequeo a mano.
 
 ```csharp
 // POST api/producto
 [HttpPost]
-public IActionResult Crear([FromBody] ProductoGuardarDto dto)
+public IActionResult Crear([FromBody] ProductoRequest request)
 {
-    // Si "dto" no cumple las Data Annotations,
+    // Si "request" no cumple las Data Annotations,
     // esta línea nunca se ejecuta: [ApiController] ya respondió 400 Bad Request
-    var productoCreado = _servicio.Agregar(dto);
-    return CreatedAtAction(nameof(ObtenerPorId), new { id = productoCreado.Id }, productoCreado);
+    var producto = request.AProducto();
+    _servicio.Agregar(producto);
+    return CreatedAtAction(nameof(ObtenerPorId), new { id = producto.Id }, producto.AProductoResponse());
 }
 ```
 
@@ -653,7 +652,7 @@ El controlador no debe contener lógica de negocio. Su única responsabilidad es
 
 Toda la lógica vive en la capa **Servicio**.
 
-El Servicio también es el que mapea entre DTO y Modelo (sección 9): recibe y devuelve DTOs, pero por dentro trabaja con `Producto` para hablar con el Repositorio.
+> **El Servicio no conoce los DTOs.** Vive en el proyecto `MiServicio`, que no referencia a `MiApi` (sección 9) — así que solo puede trabajar con `Producto`. Es el Controller el que mapea `Request`/`Response` antes y después de llamar al Servicio.
 
 **Ejemplo: ProductoService**
 ```csharp
@@ -664,40 +663,35 @@ public class ProductoService
 {
     private ProductoRepositorio _repositorio = new ProductoRepositorio();
 
-    public List<ProductoDto> ObtenerTodos()
+    public List<Producto> ObtenerTodos()
     {
-        return _repositorio.ObtenerTodos()
-            .Select(p => p.AProductoDto())
-            .ToList();
+        return _repositorio.ObtenerTodos();
     }
 
-    public ProductoDto? ObtenerPorId(int id)
+    public Producto? ObtenerPorId(int id)
     {
         var productos = _repositorio.ObtenerTodos();
-        var producto = productos.FirstOrDefault(p => p.Id == id);
-        return producto?.AProductoDto();
+        return productos.FirstOrDefault(p => p.Id == id);
     }
 
-    public ProductoDto Agregar(ProductoGuardarDto dto)
+    public void Agregar(Producto producto)
     {
         var productos = _repositorio.ObtenerTodos();
-
-        var producto = dto.AProducto();
         // Generar nuevo Id automáticamente
         producto.Id = productos.Count > 0 ? productos.Max(p => p.Id) + 1 : 1;
-
         productos.Add(producto);
         _repositorio.Guardar(productos);
-        return producto.AProductoDto();
     }
 
-    public bool Actualizar(int id, ProductoGuardarDto dto)
+    public bool Actualizar(int id, Producto productoActualizado)
     {
         var productos = _repositorio.ObtenerTodos();
         var existente = productos.FirstOrDefault(p => p.Id == id);
         if (existente == null) return false;
 
-        dto.AplicarA(existente);
+        existente.Nombre    = productoActualizado.Nombre;
+        existente.Precio    = productoActualizado.Precio;
+        existente.Categoria = productoActualizado.Categoria;
         _repositorio.Guardar(productos);
         return true;
     }
@@ -715,7 +709,67 @@ public class ProductoService
 }
 ```
 
-> Notar que `ProductoRepositorio` (capa de Datos) nunca se entera de que existen los DTOs: solo trabaja con `Producto`. Los DTOs son un detalle de cómo el Servicio se comunica con el Controller.
+**El Controller correspondiente (con el mapeo Request/Response):**
+```csharp
+[ApiController]
+[Route("api/[controller]")]
+public class ProductoController : ControllerBase
+{
+    private readonly ProductoService _servicio;
+
+    public ProductoController(ProductoService servicio)
+    {
+        _servicio = servicio;
+    }
+
+    [HttpGet]
+    public IActionResult ObtenerTodos()
+    {
+        var responses = _servicio.ObtenerTodos().Select(p => p.AProductoResponse());
+        return Ok(responses);
+    }
+
+    [HttpGet("{id}")]
+    public IActionResult ObtenerPorId(int id)
+    {
+        var producto = _servicio.ObtenerPorId(id);
+        if (producto == null)
+            return NotFound();
+
+        return Ok(producto.AProductoResponse());
+    }
+
+    [HttpPost]
+    public IActionResult Crear([FromBody] ProductoRequest request)
+    {
+        var producto = request.AProducto();
+        _servicio.Agregar(producto);
+        return CreatedAtAction(nameof(ObtenerPorId), new { id = producto.Id }, producto.AProductoResponse());
+    }
+
+    [HttpPut("{id}")]
+    public IActionResult Actualizar(int id, [FromBody] ProductoRequest request)
+    {
+        bool actualizado = _servicio.Actualizar(id, request.AProducto());
+        if (!actualizado)
+            return NotFound();
+
+        return NoContent();
+    }
+
+    [HttpDelete("{id}")]
+    public IActionResult Eliminar(int id)
+    {
+        bool eliminado = _servicio.Eliminar(id);
+        if (!eliminado)
+            return NotFound();
+
+        return NoContent();
+    }
+}
+```
+
+> Notar que ni el Repositorio ni el Servicio se enteran de que existen los DTOs: los dos trabajan pura y exclusivamente con `Producto`. Los DTOs y su mapeo son un detalle exclusivo de la capa de Controllers (`MiApi`), que es la única con visibilidad sobre ambos tipos.
 
 ---
 
@@ -730,11 +784,11 @@ public IActionResult ObtenerPorId(int id)
 {
     try
     {
-        var productoDto = _servicio.ObtenerPorId(id);
-        if (productoDto == null)
+        var producto = _servicio.ObtenerPorId(id);
+        if (producto == null)
             return NotFound();
 
-        return Ok(productoDto);
+        return Ok(producto.AProductoResponse());
     }
     catch (Exception ex)
     {
@@ -805,7 +859,8 @@ public class ProductoController : ControllerBase
     [HttpGet]
     public IActionResult ObtenerTodos()
     {
-        return Ok(_servicio.ObtenerTodos());
+        var responses = _servicio.ObtenerTodos().Select(p => p.AProductoResponse());
+        return Ok(responses);
     }
 }
 ```
@@ -835,14 +890,14 @@ public class ProductoController : ControllerBase
     {
         _logger.LogInformation("Buscando producto con id {Id}", id);
 
-        var productoDto = _servicio.ObtenerPorId(id);
-        if (productoDto == null)
+        var producto = _servicio.ObtenerPorId(id);
+        if (producto == null)
         {
             _logger.LogWarning("Producto con id {Id} no encontrado", id);
             return NotFound();
         }
 
-        return Ok(productoDto);
+        return Ok(producto.AProductoResponse());
     }
 }
 ```
@@ -1037,19 +1092,20 @@ Cuando combinamos todo lo visto en el curso, la arquitectura completa de una apl
 │   Hace peticiones HTTP, muestra los datos       │
 └──────────────────┬──────────────────────────────┘
                    │  HTTP (GET, POST, PUT, DELETE)
-                   │  DTOs en JSON (ProductoDto, ProductoGuardarDto)
+                   │  DTOs en JSON (ProductoRequest, ProductoResponse)
 ┌──────────────────▼──────────────────────────────┐
 │            CONTROLADORES (API Layer)            │
 │    ProductoController, ClienteController, ...   │
-│    Reciben/devuelven DTOs, validan el DTO,      │
-│    llaman al servicio, devuelven la respuesta   │
+│    Reciben/devuelven DTOs, validan el Request,  │
+│    mapean DTO ↔ Modelo (DTOs/*Mapper.cs) y      │
+│    llaman al servicio con/desde el Modelo       │
 └──────────────────┬──────────────────────────────┘
-                   │  DTOs
+                   │  Modelo (Entidad) — nunca DTOs
 ┌──────────────────▼──────────────────────────────┐
 │               SERVICIOS (Business Logic)        │
 │    ProductoService, ClienteService, ...         │
-│    Mapean DTO ↔ Modelo (DTOs/*Mapper.cs) y      │
-│    contienen las reglas de negocio              │
+│    No conocen los DTOs: solo trabajan con el    │
+│    Modelo y contienen las reglas de negocio     │
 └──────────────────┬──────────────────────────────┘
                    │  Modelo (Entidad)
 ┌──────────────────▼──────────────────────────────┐
@@ -1064,33 +1120,45 @@ Cuando combinamos todo lo visto en el curso, la arquitectura completa de una apl
 └─────────────────────────────────────────────────┘
 ```
 
-**Estructura de archivos del proyecto completo:**
+**Estructura de archivos de la solución completa** (los 3 proyectos de la sección 9):
 ```
-MiApi/
-├── Controllers/
-│   ├── ProductoController.cs
-│   └── ClienteController.cs
-├── Servicios/
-│   ├── ProductoService.cs
-│   └── ClienteService.cs
-├── DTOs/
-│   ├── ProductoDto.cs
-│   ├── ProductoGuardarDto.cs
-│   ├── ProductoMapper.cs
-│   ├── ClienteDto.cs
-│   └── ...
-├── Datos/
-│   ├── ProductoRepositorio.cs
-│   └── ClienteRepositorio.cs
-├── Entidades/
-│   ├── Producto.cs
-│   └── Cliente.cs
-├── datos/
-│   ├── productos.json        ← generado en tiempo de ejecución
-│   └── clientes.json         ← generado en tiempo de ejecución
-├── appsettings.json
-├── Program.cs
-└── MiApi.csproj
+MiSolucion/
+│
+├── MiSolucion.sln
+│
+├── MiServicio/                     ← lógica de negocio (no conoce los DTOs)
+│   ├── MiServicio.csproj
+│   ├── Entidades/
+│   │   ├── Producto.cs
+│   │   └── Cliente.cs
+│   ├── Servicios/
+│   │   ├── ProductoService.cs
+│   │   └── ClienteService.cs
+│   └── Datos/
+│       ├── ProductoRepositorio.cs
+│       ├── ClienteRepositorio.cs
+│       ├── productos.json        ← generado en tiempo de ejecución
+│       └── clientes.json         ← generado en tiempo de ejecución
+│
+├── MiServicioTest/                 ← Referencia a MiServicio
+│   ├── MiServicioTest.csproj
+│   ├── ProductoServiceTest.cs
+│   └── ClienteServiceTest.cs
+│
+└── MiApi/                          ← Referencia a MiServicio
+    ├── MiApi.csproj
+    ├── Controllers/
+    │   ├── ProductoController.cs
+    │   └── ClienteController.cs
+    ├── DTOs/
+    │   ├── ProductoRequest.cs
+    │   ├── ProductoResponse.cs
+    │   ├── ProductoMapper.cs
+    │   ├── ClienteRequest.cs
+    │   ├── ClienteResponse.cs
+    │   └── ...
+    ├── appsettings.json
+    └── Program.cs
 ```
 
 **Flujo de ejemplo para `GET /api/producto/5`:**
@@ -1099,10 +1167,10 @@ MiApi/
 2. ProductoController.ObtenerPorId(5) recibe la petición
 3. Llama a _servicio.ObtenerPorId(5)
 4. El servicio llama a _repositorio.ObtenerTodos()
-5. El repositorio lee "datos/productos.json" y deserializa la lista de Producto
-6. El servicio busca el Producto con Id == 5 en la lista
-7. El servicio lo mapea a ProductoDto (producto.AProductoDto())
-8. El controlador recibe el ProductoDto y devuelve Ok(productoDto)
+5. El repositorio lee "productos.json" y deserializa la lista de Producto
+6. El servicio busca el Producto con Id == 5 en la lista y lo devuelve tal cual
+7. El controlador recibe el Producto y lo mapea a ProductoResponse (producto.AProductoResponse())
+8. El controlador devuelve Ok(productoResponse)
 9. .NET serializa el DTO a JSON y lo envía al cliente con código 200
 ```
 
@@ -1116,7 +1184,7 @@ MiApi/
 | Definir controlador | `[ApiController]`, `[Route("api/[controller]")]` |
 | Definir endpoints | `[HttpGet]`, `[HttpPost]`, `[HttpPut]`, `[HttpDelete]` |
 | Filtrar por query string | `[FromQuery]` |
-| Mapear DTO ↔ Modelo | Métodos de extensión (`AProductoDto()`, `AProducto()`) |
+| Mapear DTO (Request/Response) ↔ Modelo, en el Controller | Métodos de extensión (`AProductoResponse()`, `AProducto()`) |
 | Devolver respuesta | `Ok()`, `NotFound()`, `CreatedAtAction()`, `NoContent()` |
 | Validar el DTO de entrada | Data Annotations (`[Required]`, `[Range]`, ...) + `[ApiController]` |
 | Manejar errores | `try/catch`, `app.UseExceptionHandler(...)` |
