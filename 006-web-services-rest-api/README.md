@@ -14,18 +14,17 @@ En esta unidad aprendemos a construir y consumir **APIs Web** usando ASP.NET Cor
 6. [Controllers y Endpoints](#6-controllers-y-endpoints)
 7. [Instalar y Usar Postman para Probar la API](#7-instalar-y-usar-postman-para-probar-la-api)
 8. [Filtrar Resultados con Query Strings](#8-filtrar-resultados-con-query-strings)
-9. [Async en Controllers](#9-async-en-controllers)
-10. [Modelo y DTOs](#10-modelo-y-dtos)
-11. [Validación de Modelos con Data Annotations](#11-validación-de-modelos-con-data-annotations)
-12. [Patrón Servicio en Web API](#12-patrón-servicio-en-web-api)
-13. [Manejo de Errores](#13-manejo-de-errores)
-14. [Inyección de Dependencias](#14-inyección-de-dependencias)
-15. [Logging con ILogger](#15-logging-con-ilogger)
-16. [Configuración de CORS](#16-configuración-de-cors)
-17. [Consumir una API con HttpClient (Cliente)](#17-consumir-una-api-con-httpclient-cliente)
-18. [Probar la API](#18-probar-la-api)
-19. [Arquitectura de la Aplicación Completa](#19-arquitectura-de-la-aplicación-completa)
-20. [Resumen](#resumen)
+9. [Modelo y DTOs](#9-modelo-y-dtos)
+10. [Validación de Modelos con Data Annotations](#10-validación-de-modelos-con-data-annotations)
+11. [Patrón Servicio en Web API](#11-patrón-servicio-en-web-api)
+12. [Manejo de Errores](#12-manejo-de-errores)
+13. [Inyección de Dependencias](#13-inyección-de-dependencias)
+14. [Logging con ILogger](#14-logging-con-ilogger)
+15. [Configuración de CORS](#15-configuración-de-cors)
+16. [Consumir una API con HttpClient (Cliente)](#16-consumir-una-api-con-httpclient-cliente)
+17. [Probar la API](#17-probar-la-api)
+18. [Arquitectura de la Aplicación Completa](#18-arquitectura-de-la-aplicación-completa)
+19. [Resumen](#resumen)
 
 ---
 
@@ -418,33 +417,7 @@ public IActionResult ObtenerTodos([FromQuery] string? categoria)
 
 ---
 
-## 9. Async en Controllers
-
-Los métodos de un controller pueden ser **asíncronos** cuando el trabajo que realizan implica esperar una operación de entrada/salida (leer un archivo, consultar una base de datos, llamar a otra API). Usar `async`/`await` libera el hilo del servidor mientras se espera esa operación, permitiendo que la API atienda más peticiones al mismo tiempo.
-
-Ya usamos este patrón del lado del **cliente** en la sección 17 (`HttpClient` + `await`). Del lado del **servidor**, se aplica igual: el método pasa a devolver `Task<IActionResult>` y se le agrega `async`.
-
-**Ejemplo: versión asíncrona de `ObtenerPorId`**
-```csharp
-// GET api/producto/5 (versión asíncrona)
-[HttpGet("{id}")]
-public async Task<IActionResult> ObtenerPorId(int id)
-{
-    var producto = await _servicio.ObtenerPorIdAsync(id);
-    if (producto == null)
-        return NotFound();
-
-    return Ok(producto);
-}
-```
-
-Esto requiere que el servicio (y el repositorio) también expongan una versión asíncrona, por ejemplo usando `File.ReadAllTextAsync` en vez de `File.ReadAllText`.
-
-> En este curso los ejemplos de CRUD se muestran de forma sincrónica por simplicidad, ya que trabajamos con archivos chicos en memoria. Pero es importante reconocer el patrón `async Task<IActionResult>`, porque es el que vas a encontrar en prácticamente cualquier API real (sobre todo con bases de datos).
-
----
-
-## 10. Modelo y DTOs
+## 9. Modelo y DTOs
 
 El **modelo** (también llamado entidad) es la clase que representa un objeto del dominio de negocio. Es la misma clase que usaríamos en nuestra capa de entidades.
 
@@ -480,7 +453,7 @@ En proyectos simples de este curso, podemos trabajar directamente con los modelo
 
 ---
 
-## 11. Validación de Modelos con Data Annotations
+## 10. Validación de Modelos con Data Annotations
 
 Hasta ahora, si un cliente manda un `POST` con un `Producto` incompleto o con datos inválidos (por ejemplo, precio negativo), el controller lo acepta igual. Para evitar eso, usamos **Data Annotations**: atributos que se agregan a las propiedades del modelo para declarar reglas de validación.
 
@@ -532,7 +505,7 @@ public IActionResult Crear([FromBody] Producto producto)
 
 ---
 
-## 12. Patrón Servicio en Web API
+## 11. Patrón Servicio en Web API
 
 El controlador no debe contener lógica de negocio. Su única responsabilidad es:
 1. Recibir la petición HTTP
@@ -598,7 +571,7 @@ public class ProductoService
 
 ---
 
-## 13. Manejo de Errores
+## 12. Manejo de Errores
 
 Las Data Annotations cubren datos inválidos, pero no cubren **fallos inesperados**: el archivo JSON no existe, está corrupto, o hay un error de programación. Si eso pasa y no lo manejamos, el cliente recibe un `500 Internal Server Error` sin ninguna explicación útil.
 
@@ -640,7 +613,7 @@ app.Run();
 
 ---
 
-## 14. Inyección de Dependencias
+## 13. Inyección de Dependencias
 
 La **Inyección de Dependencias** (DI) es un patrón de diseño donde una clase no crea sus propias dependencias, sino que las recibe desde afuera. .NET Core tiene un sistema de DI integrado.
 
@@ -693,7 +666,7 @@ public class ProductoController : ControllerBase
 
 ---
 
-## 15. Logging con ILogger
+## 14. Logging con ILogger
 
 `ILogger<T>` es un servicio que .NET Core registra automáticamente en el contenedor de DI, sin que tengamos que hacer nada en `Program.cs`. Es el ejemplo más directo de inyección de dependencias "gratis" que ofrece el framework, y sirve para dejar rastro de lo que hace la API mientras corre.
 
@@ -739,7 +712,7 @@ Estos logs aparecen en la consola mientras corremos `dotnet run`, y son la prime
 
 ---
 
-## 16. Configuración de CORS
+## 15. Configuración de CORS
 
 **CORS** (Cross-Origin Resource Sharing) es un mecanismo de seguridad del navegador que bloquea las peticiones a un dominio diferente al de la página actual. Por ejemplo, si tu frontend corre en `http://localhost:3000` y tu API en `http://localhost:5000`, el navegador bloqueará las peticiones por defecto.
 
@@ -774,7 +747,7 @@ app.Run();
 
 ---
 
-## 17. Consumir una API con HttpClient (Cliente)
+## 16. Consumir una API con HttpClient (Cliente)
 
 Para que nuestra aplicación consuma una API externa (o la propia API), usamos `HttpClient`. Esta clase permite enviar peticiones HTTP y recibir respuestas.
 
@@ -838,7 +811,7 @@ Console.WriteLine($"Código de respuesta: {(int)respuesta.StatusCode} {respuesta
 
 ---
 
-## 18. Probar la API
+## 17. Probar la API
 
 Existen varias formas de probar los endpoints de una API mientras desarrollamos:
 
@@ -905,7 +878,7 @@ app.Run();
 
 ---
 
-## 19. Arquitectura de la Aplicación Completa
+## 18. Arquitectura de la Aplicación Completa
 
 Cuando combinamos todo lo visto en el curso, la arquitectura completa de una aplicación con Web API queda así:
 
@@ -987,7 +960,6 @@ MiApi/
 | Definir controlador | `[ApiController]`, `[Route("api/[controller]")]` |
 | Definir endpoints | `[HttpGet]`, `[HttpPost]`, `[HttpPut]`, `[HttpDelete]` |
 | Filtrar por query string | `[FromQuery]` |
-| Endpoints asíncronos | `async Task<IActionResult>` + `await` |
 | Devolver respuesta | `Ok()`, `NotFound()`, `CreatedAtAction()`, `NoContent()` |
 | Validar el modelo | Data Annotations (`[Required]`, `[Range]`, ...) + `[ApiController]` |
 | Manejar errores | `try/catch`, `app.UseExceptionHandler(...)` |
