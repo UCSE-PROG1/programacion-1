@@ -12,19 +12,20 @@ En esta unidad aprendemos a construir y consumir **APIs Web** usando ASP.NET Cor
 4. [HTTP: Verbos y Códigos de Estado](#4-http-verbos-y-códigos-de-estado)
 5. [Crear un Proyecto Web API con .NET Core](#5-crear-un-proyecto-web-api-con-net-core)
 6. [Controllers y Endpoints](#6-controllers-y-endpoints)
-7. [Filtrar Resultados con Query Strings](#7-filtrar-resultados-con-query-strings)
-8. [Async en Controllers](#8-async-en-controllers)
-9. [Modelo y DTOs](#9-modelo-y-dtos)
-10. [Validación de Modelos con Data Annotations](#10-validación-de-modelos-con-data-annotations)
-11. [Patrón Servicio en Web API](#11-patrón-servicio-en-web-api)
-12. [Manejo de Errores](#12-manejo-de-errores)
-13. [Inyección de Dependencias](#13-inyección-de-dependencias)
-14. [Logging con ILogger](#14-logging-con-ilogger)
-15. [Configuración de CORS](#15-configuración-de-cors)
-16. [Consumir una API con HttpClient (Cliente)](#16-consumir-una-api-con-httpclient-cliente)
-17. [Probar la API](#17-probar-la-api)
-18. [Arquitectura de la Aplicación Completa](#18-arquitectura-de-la-aplicación-completa)
-19. [Resumen](#resumen)
+7. [Instalar y Usar Postman para Probar la API](#7-instalar-y-usar-postman-para-probar-la-api)
+8. [Filtrar Resultados con Query Strings](#8-filtrar-resultados-con-query-strings)
+9. [Async en Controllers](#9-async-en-controllers)
+10. [Modelo y DTOs](#10-modelo-y-dtos)
+11. [Validación de Modelos con Data Annotations](#11-validación-de-modelos-con-data-annotations)
+12. [Patrón Servicio en Web API](#12-patrón-servicio-en-web-api)
+13. [Manejo de Errores](#13-manejo-de-errores)
+14. [Inyección de Dependencias](#14-inyección-de-dependencias)
+15. [Logging con ILogger](#15-logging-con-ilogger)
+16. [Configuración de CORS](#16-configuración-de-cors)
+17. [Consumir una API con HttpClient (Cliente)](#17-consumir-una-api-con-httpclient-cliente)
+18. [Probar la API](#18-probar-la-api)
+19. [Arquitectura de la Aplicación Completa](#19-arquitectura-de-la-aplicación-completa)
+20. [Resumen](#resumen)
 
 ---
 
@@ -300,7 +301,97 @@ public class ProductoController : ControllerBase
 
 ---
 
-## 7. Filtrar Resultados con Query Strings
+## 7. Instalar y Usar Postman para Probar la API
+
+Escribir cada `curl` a mano funciona, pero para probar una API con comodidad (guardar peticiones, armar el body en JSON, ver la respuesta formateada) lo más práctico es usar **Postman**, un cliente HTTP con interfaz gráfica.
+
+### ¿Qué es Postman?
+
+Postman es una aplicación que permite armar peticiones HTTP (GET, POST, PUT, DELETE, etc.), enviarlas a una API y visualizar la respuesta (status code, headers, body en JSON) sin escribir código ni comandos.
+
+### Instalación
+
+**Opción 1 — Descargar el instalador (recomendado):**
+1. Ir a [https://www.postman.com/downloads/](https://www.postman.com/downloads/)
+2. Descargar la versión para Windows
+3. Ejecutar el instalador y seguir los pasos
+
+**Opción 2 — Con winget (desde una terminal de Windows):**
+```bash
+winget install Postman.Postman
+```
+
+**Opción 3 — Usarlo sin instalar:** Postman también tiene una versión web en [https://web.postman.co](https://web.postman.co) (requiere crear una cuenta gratuita).
+
+### Crear una petición
+
+Con la API corriendo (`dotnet run`), en Postman:
+
+1. Click en **New → HTTP Request** (o el botón `+` para una pestaña nueva)
+2. Elegir el **verbo** en el dropdown (GET, POST, PUT, DELETE, ...)
+3. Escribir la **URL** del endpoint
+4. Si la petición lleva body (POST/PUT), ir a la pestaña **Body**, elegir **raw** y el formato **JSON**
+5. Click en **Send**
+6. La respuesta aparece abajo: **status code**, **tiempo**, y el **body** en JSON formateado
+
+### Ejemplos con el `ProductoController` de la sección 6
+
+**GET — obtener todos los productos**
+```
+Verbo: GET
+URL:   https://localhost:7001/api/producto
+```
+
+**GET — obtener un producto por id**
+```
+Verbo: GET
+URL:   https://localhost:7001/api/producto/5
+```
+
+**POST — crear un producto**
+```
+Verbo: POST
+URL:   https://localhost:7001/api/producto
+Body (raw, JSON):
+{
+    "nombre": "Laptop",
+    "precio": 1500.00,
+    "categoria": "Electrónica"
+}
+```
+
+**PUT — actualizar un producto**
+```
+Verbo: PUT
+URL:   https://localhost:7001/api/producto/5
+Body (raw, JSON):
+{
+    "nombre": "Laptop Pro",
+    "precio": 1800.00,
+    "categoria": "Electrónica"
+}
+```
+
+**DELETE — eliminar un producto**
+```
+Verbo: DELETE
+URL:   https://localhost:7001/api/producto/5
+```
+
+> Al crear un `POST`, Postman debería mostrar `201 Created`; en un `DELETE` exitoso, `204 No Content` (sin body). Esto es una forma rápida de confirmar que el controller está devolviendo los códigos de estado correctos.
+
+### Collections: guardar peticiones para reutilizarlas
+
+En vez de reescribir cada petición, Postman permite agruparlas en una **Collection**:
+1. Click en **New → Collection**, ponerle un nombre (por ejemplo, "MiApi")
+2. Dentro de la collection, **Add request** para cada endpoint (GET todos, GET por id, POST, PUT, DELETE)
+3. Guardar cada petición con **Save**
+
+Así, la próxima vez que se quiera probar la API, ya están todas las peticiones armadas y solo hace falta apretar **Send**.
+
+---
+
+## 8. Filtrar Resultados con Query Strings
 
 Además del `id` en la ruta, un endpoint `GET` puede recibir parámetros opcionales por **query string** (lo que va después del `?` en la URL) para filtrar resultados. Se capturan con el atributo `[FromQuery]`.
 
@@ -327,11 +418,11 @@ public IActionResult ObtenerTodos([FromQuery] string? categoria)
 
 ---
 
-## 8. Async en Controllers
+## 9. Async en Controllers
 
 Los métodos de un controller pueden ser **asíncronos** cuando el trabajo que realizan implica esperar una operación de entrada/salida (leer un archivo, consultar una base de datos, llamar a otra API). Usar `async`/`await` libera el hilo del servidor mientras se espera esa operación, permitiendo que la API atienda más peticiones al mismo tiempo.
 
-Ya usamos este patrón del lado del **cliente** en la sección 16 (`HttpClient` + `await`). Del lado del **servidor**, se aplica igual: el método pasa a devolver `Task<IActionResult>` y se le agrega `async`.
+Ya usamos este patrón del lado del **cliente** en la sección 17 (`HttpClient` + `await`). Del lado del **servidor**, se aplica igual: el método pasa a devolver `Task<IActionResult>` y se le agrega `async`.
 
 **Ejemplo: versión asíncrona de `ObtenerPorId`**
 ```csharp
@@ -353,7 +444,7 @@ Esto requiere que el servicio (y el repositorio) también expongan una versión 
 
 ---
 
-## 9. Modelo y DTOs
+## 10. Modelo y DTOs
 
 El **modelo** (también llamado entidad) es la clase que representa un objeto del dominio de negocio. Es la misma clase que usaríamos en nuestra capa de entidades.
 
@@ -389,7 +480,7 @@ En proyectos simples de este curso, podemos trabajar directamente con los modelo
 
 ---
 
-## 10. Validación de Modelos con Data Annotations
+## 11. Validación de Modelos con Data Annotations
 
 Hasta ahora, si un cliente manda un `POST` con un `Producto` incompleto o con datos inválidos (por ejemplo, precio negativo), el controller lo acepta igual. Para evitar eso, usamos **Data Annotations**: atributos que se agregan a las propiedades del modelo para declarar reglas de validación.
 
@@ -441,7 +532,7 @@ public IActionResult Crear([FromBody] Producto producto)
 
 ---
 
-## 11. Patrón Servicio en Web API
+## 12. Patrón Servicio en Web API
 
 El controlador no debe contener lógica de negocio. Su única responsabilidad es:
 1. Recibir la petición HTTP
@@ -507,7 +598,7 @@ public class ProductoService
 
 ---
 
-## 12. Manejo de Errores
+## 13. Manejo de Errores
 
 Las Data Annotations cubren datos inválidos, pero no cubren **fallos inesperados**: el archivo JSON no existe, está corrupto, o hay un error de programación. Si eso pasa y no lo manejamos, el cliente recibe un `500 Internal Server Error` sin ninguna explicación útil.
 
@@ -549,7 +640,7 @@ app.Run();
 
 ---
 
-## 13. Inyección de Dependencias
+## 14. Inyección de Dependencias
 
 La **Inyección de Dependencias** (DI) es un patrón de diseño donde una clase no crea sus propias dependencias, sino que las recibe desde afuera. .NET Core tiene un sistema de DI integrado.
 
@@ -602,7 +693,7 @@ public class ProductoController : ControllerBase
 
 ---
 
-## 14. Logging con ILogger
+## 15. Logging con ILogger
 
 `ILogger<T>` es un servicio que .NET Core registra automáticamente en el contenedor de DI, sin que tengamos que hacer nada en `Program.cs`. Es el ejemplo más directo de inyección de dependencias "gratis" que ofrece el framework, y sirve para dejar rastro de lo que hace la API mientras corre.
 
@@ -648,7 +739,7 @@ Estos logs aparecen en la consola mientras corremos `dotnet run`, y son la prime
 
 ---
 
-## 15. Configuración de CORS
+## 16. Configuración de CORS
 
 **CORS** (Cross-Origin Resource Sharing) es un mecanismo de seguridad del navegador que bloquea las peticiones a un dominio diferente al de la página actual. Por ejemplo, si tu frontend corre en `http://localhost:3000` y tu API en `http://localhost:5000`, el navegador bloqueará las peticiones por defecto.
 
@@ -683,7 +774,7 @@ app.Run();
 
 ---
 
-## 16. Consumir una API con HttpClient (Cliente)
+## 17. Consumir una API con HttpClient (Cliente)
 
 Para que nuestra aplicación consuma una API externa (o la propia API), usamos `HttpClient`. Esta clase permite enviar peticiones HTTP y recibir respuestas.
 
@@ -747,9 +838,11 @@ Console.WriteLine($"Código de respuesta: {(int)respuesta.StatusCode} {respuesta
 
 ---
 
-## 17. Probar la API
+## 18. Probar la API
 
 Existen varias formas de probar los endpoints de una API mientras desarrollamos:
+
+> Para probar con **Postman**, ver la sección 7.
 
 ### Desde el navegador (solo GET)
 Para peticiones GET simples, podés escribir la URL directamente en el navegador:
@@ -812,7 +905,7 @@ app.Run();
 
 ---
 
-## 18. Arquitectura de la Aplicación Completa
+## 19. Arquitectura de la Aplicación Completa
 
 Cuando combinamos todo lo visto en el curso, la arquitectura completa de una aplicación con Web API queda así:
 
