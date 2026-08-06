@@ -320,8 +320,6 @@ Postman es una aplicación que permite armar peticiones HTTP (GET, POST, PUT, DE
 winget install Postman.Postman
 ```
 
-**Opción 3 — Usarlo sin instalar:** Postman también tiene una versión web en [https://web.postman.co](https://web.postman.co) (requiere crear una cuenta gratuita).
-
 ### Crear una petición
 
 Con la API corriendo (`dotnet run`), en Postman:
