@@ -815,22 +815,6 @@ public IActionResult ObtenerPorId(int id)
 }
 ```
 
-**Opción 2: manejo centralizado (evita repetir `try/catch` en cada endpoint)**
-```csharp
-var app = builder.Build();
-
-if (!app.Environment.IsDevelopment())
-{
-    // En producción, redirige cualquier excepción no controlada a /error
-    app.UseExceptionHandler("/error");
-}
-
-app.MapControllers();
-app.Run();
-```
-
-> En desarrollo, ASP.NET Core ya muestra una página detallada de errores por defecto. La opción centralizada se usa para mostrar un mensaje genérico y seguro en producción, sin exponer detalles internos del servidor.
-
 ---
 
 ## 13. Inyección de Dependencias
