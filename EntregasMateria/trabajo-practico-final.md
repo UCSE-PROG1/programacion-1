@@ -10,14 +10,22 @@
 
 ## 1. Equipos y armado
 
-- El curso se organiza en **9 equipos de 3 personas** y **2 equipos de 2 personas**. Los equipos de 2 personas no tienen que resolver las dos últimas pantallas de la sección 7 (control de acceso y consulta de una compra).
+- El curso se organiza en **9 equipos de 3 personas** y **2 equipos de 2 personas**. Los equipos de 2 personas no tienen que resolver las dos últimas pantallas de la sección 8 (control de acceso y consulta de una compra).
 - Cada equipo elige un **nombre**, relacionado con el trabajo, que no sea de temática religiosa, política ni racista.
 - Cada equipo crea un **canal de Slack** con el nombre del equipo, y suma al **Profesor Gonzalo** a ese canal.
 - El nombre del repositorio se arma reemplazando `<nombre-del-equipo>` por el nombre elegido, por ejemplo: `2026-prog1-tpfinal-ticketflow`.
 
 ---
 
-## 2. Contexto
+## 2. Fechas de entrega
+
+- **Viernes 02/10 — Web APIs completas y funcionando.** Si la entrega no compila o no está completa, se pierde la posibilidad de promoción (si el equipo la tenía). Se va a corregir lo entregado hasta esta fecha, pero el equipo tiene que seguir trabajando para que la entrega esté funcional el día del coloquio.
+- **Viernes 16/10 — Páginas HTML que completan el trabajo** (el frontend).
+- **Coloquios: 27/10 y 29/10**, comenzando a las 18 hs.
+
+---
+
+## 3. Contexto
 
 Una organizadora de eventos maneja hoy la venta de entradas con planillas de Excel y grupos de WhatsApp, y quiere reemplazar eso por un sistema propio. El problema no termina cuando se vende una entrada: el día del evento, en la puerta, alguien tiene que poder confirmar que esa entrada es legítima y que no la está usando dos veces la misma persona (o dos personas distintas con una foto de la misma entrada).
 
@@ -34,7 +42,7 @@ El análisis de qué información hace falta guardar, qué entidades existen y c
 
 ---
 
-## 3. Qué resuelve cada sistema
+## 4. Qué resuelve cada sistema
 
 **Gestión de eventos y ventas.** La organizadora publica los eventos que van a existir: de qué se trata cada uno, cuándo y dónde es. Un evento puede tener más de una modalidad de entrada — por ejemplo, acceso general y otra que dé algo más (un sector especial, una consumición, lo que sea) — y esas modalidades no necesariamente cuestan lo mismo ni tienen la misma cantidad disponible. La organizadora necesita poder cancelar un evento si algo se cae, y saber en cualquier momento cuánto se recaudó y cuántas entradas se vendieron por evento.
 
@@ -46,7 +54,7 @@ Comprar una entrada no es solo "restar del cupo": el día del evento, alguien en
 
 ---
 
-## 4. Reglas del negocio
+## 5. Reglas del negocio
 
 Estas son las reglas que el sistema tiene que hacer cumplir siempre, sin excepción:
 
@@ -63,19 +71,19 @@ Estas reglas — y no una lista de clases — son el punto de partida para decid
 
 ---
 
-## 5. Requisitos técnicos
+## 6. Requisitos técnicos
 
 - **Dos APIs REST** (ASP.NET Core) ejecutándose en local: una de **gestión** (eventos, modalidades, ventas, reportes) y otra de **validación de entradas** (consultada el día del evento). La API de gestión tiene que tener **Swagger habilitado**, para poder probar sus endpoints sin necesidad del frontend.
 - **Ambas APIs comparten los mismos datos.** No hay base de datos ni un tercer servicio en el medio: las dos leen y escriben sobre los mismos archivos en disco. Una entrada vendida por la API de gestión tiene que poder validarse inmediatamente desde la API de validación.
 - **Usuarios precargados y validación por rol.** Los usuarios del sistema (organizadores y compradores) vienen precargados en un archivo, con su DNI, nombre, username y rol (ver anexo al final de este documento). No hay login ni contraseña, pero cada endpoint de la API de gestión que corresponda a una acción restringida (gestionar eventos, ver el reporte) tiene que recibir el DNI de quien hace el pedido y validar, contra ese archivo de usuarios, si el rol de esa persona tiene permiso para esa acción — rechazando el pedido si no lo tiene.
 - **El frontend también respeta el rol.** No alcanza con que el backend rechace lo que no corresponde: la interfaz tampoco debe mostrarle a un usuario las opciones de una acción para la que no tiene permiso (por ejemplo, un comprador no debería ver el botón para crear un evento).
 - **Persistencia en archivos**, no en memoria: la información tiene que sobrevivir a un reinicio de cualquiera de las dos APIs. No se usa base de datos ni ORM — se serializa el estado a disco.
-- **Pruebas unitarias (NUnit)** sobre la lógica de negocio (las reglas de la sección 4), no sobre getters/setters. Cada una de las dos APIs tiene que tener su propio proyecto de lógica separado del proyecto de la API, y su propio proyecto de tests sobre esa lógica — no alcanza con testear una sola de las dos. El equipo decide qué casos de borde probar; se van a evaluar tanto los casos que tienen que funcionar como los que tienen que ser rechazados (entrada inexistente, ya usada, de otro evento, cupo agotado, evento cancelado, etc.).
+- **Pruebas unitarias (NUnit)** sobre la lógica de negocio (las reglas de la sección 5), no sobre getters/setters. Cada una de las dos APIs tiene que tener su propio proyecto de lógica separado del proyecto de la API, y su propio proyecto de tests sobre esa lógica — no alcanza con testear una sola de las dos. El equipo decide qué casos de borde probar; se van a evaluar tanto los casos que tienen que funcionar como los que tienen que ser rechazados (entrada inexistente, ya usada, de otro evento, cupo agotado, evento cancelado, etc.).
 - **Frontend web** en HTML, CSS y JavaScript (sin frameworks) que consuma ambas APIs. No requiere login.
 
 ---
 
-## 6. Métodos REST a resolver
+## 7. Métodos REST a resolver
 
 Esta es la lista mínima de operaciones que cada API tiene que exponer. Los nombres de ruta son una sugerencia para que las dos APIs sean fáciles de integrar entre sí — el equipo puede ajustarlos, pero tiene que cubrir estas operaciones.
 
@@ -96,7 +104,7 @@ Los endpoints marcados con un rol requerido tienen que recibir también el DNI d
 | GET | `/api/compras/{id}` | — | Consulta el detalle de una compra y el estado de cada entrada que generó. |
 | GET | `/api/reportes/recaudacion` | Organizador | Recaudación y entradas vendidas por evento. |
 
-Solo para equipos con algún integrante en condición de promoción (ver sección 11):
+Solo para equipos con algún integrante en condición de promoción (ver sección 12):
 
 | Método | Endpoint sugerido | Rol requerido | Qué resuelve |
 |---|---|---|---|
@@ -110,7 +118,7 @@ Solo para equipos con algún integrante en condición de promoción (ver secció
 
 ---
 
-## 7. Pantallas esperadas
+## 8. Pantallas esperadas
 
 La aplicación tiene que resolver, con pantallas concretas, al menos:
 
@@ -128,7 +136,7 @@ Cómo se organizan esas pantallas — un único sitio con secciones, o dos front
 
 ---
 
-## 8. Trabajo en equipo (Unidad 3 — Git)
+## 9. Trabajo en equipo (Unidad 3 — Git)
 
 - Un repositorio llamado `2026-prog1-tpfinal-<nombre-del-equipo>`, con las dos soluciones .NET y el frontend, organizado en carpetas en la raíz:
   - `CarpetaApi1` — solución de una de las dos APIs.
@@ -141,20 +149,22 @@ Cómo se organizan esas pantallas — un único sitio con secciones, o dos front
 
 ---
 
-## 9. Cronograma sugerido (6 semanas)
+## 10. Cronograma sugerido (6 semanas)
 
 | Semana | Foco | Unidad |
 |---|---|---|
 | 1 | Lectura y análisis del enunciado, diseño del modelo (qué entidades, qué datos, qué relaciones), setup del repo y de las 2 soluciones .NET | 1, 3 |
 | 2 | Lógica de negocio en memoria (sin persistencia todavía): eventos, modalidades, compra, generación de entradas individuales + primeros tests | 2, 4 |
-| 3 | Persistencia compartida en archivos + tests de los casos de borde de la sección 4, en particular la validación de entradas | 4, 5 |
+| 3 | Persistencia compartida en archivos + tests de los casos de borde de la sección 5, en particular la validación de entradas | 4, 5 |
 | 4 | Exposición como servicios REST (Swagger) de ambas APIs, verificando que las dos leen y escriben correctamente sobre los mismos datos | 6 |
-| 5 | Frontend de gestión y venta: catálogo, detalle, compra, ABM de eventos | 7 |
+| 5 | Frontend de gestión y venta: catálogo, detalle, compra | 7 |
 | 6 | Frontend de control de acceso, integración final, README, demo | 7 |
+
+Las fechas concretas de entrega están en la sección 2 — este cronograma es una guía de ritmo, no reemplaza esas fechas.
 
 ---
 
-## 10. Entregables
+## 11. Entregables
 
 - Repositorio con las 2 soluciones .NET + frontend, con historial de commits/PRs de los integrantes.
 - README con instrucciones para levantar ambas APIs y abrir el frontend en local.
@@ -163,7 +173,7 @@ Cómo se organizan esas pantallas — un único sitio con secciones, o dos front
 
 ---
 
-## 11. Sección para quienes estén en condición de promoción
+## 12. Sección para quienes estén en condición de promoción
 
 Este punto es adicional, y aplica para los equipos que tengan al menos una persona en condición de promoción.
 
@@ -171,7 +181,7 @@ La organizadora pide algo más: quiere que, al ver el detalle de un evento, se p
 
 Esto no es solo agregar un mapa en la pantalla: probablemente implique repensar qué datos guarda un evento sobre su ubicación — hoy alcanza con un texto libre tipo "Lugar", pero un mapa necesita algo más preciso para poder ubicar un punto. Qué cambia exactamente en el modelo, y en qué capa (dominio, persistencia, API, frontend) se resuelve cada parte, queda para que lo investiguen y decidan.
 
-Además, para estos equipos, un comprador tiene que poder **cancelar una entrada ya comprada** y que esa entrada vuelva a estar disponible para que otro la compre (ver el endpoint correspondiente en la sección 6). Pensar qué pasa si la entrada que se quiere cancelar ya fue validada en la puerta el día del evento es parte del análisis — no toda entrada comprada debería poder cancelarse en cualquier momento.
+Además, para estos equipos, un comprador tiene que poder **cancelar una entrada ya comprada** y que esa entrada vuelva a estar disponible para que otro la compre (ver el endpoint correspondiente en la sección 7). Pensar qué pasa si la entrada que se quiere cancelar ya fue validada en la puerta el día del evento es parte del análisis — no toda entrada comprada debería poder cancelarse en cualquier momento.
 
 ---
 
