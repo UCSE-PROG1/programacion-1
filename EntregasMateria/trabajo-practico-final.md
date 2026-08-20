@@ -169,7 +169,7 @@ Las fechas concretas de entrega están en la sección 2 — este cronograma es u
 - Repositorio con las 2 soluciones .NET + frontend, con historial de commits/PRs de los integrantes.
 - README con instrucciones para levantar ambas APIs y abrir el frontend en local.
 - Suite de tests NUnit en verde en los dos proyectos de lógica (gestión y validación).
-- Video de la demo funcional, de **no más de 1 minuto**: alta de un evento → venta de una compra con varias entradas → validación exitosa de una de esas entradas en la puerta → intento de volver a validar la misma entrada (tiene que rechazarse).
+- Video de la demo funcional, de **no más de 1 o 2 minutos**: alta de un evento → venta de una compra con varias entradas → validación exitosa de una de esas entradas en la puerta → intento de volver a validar la misma entrada (tiene que rechazarse).
 
 ---
 
