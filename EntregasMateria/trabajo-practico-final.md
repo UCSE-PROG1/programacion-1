@@ -145,7 +145,6 @@ Cómo se organizan esas pantallas — un único sitio con secciones, o dos front
   - `CarpetaFrontend` — el frontend (o `CarpetaFrontend1` y `CarpetaFrontend2` si el equipo decide separarlo en dos).
   
   Los nombres de carpeta son orientativos: cada equipo los puede reemplazar por algo más descriptivo (por ejemplo, `ApiGestion`, `ApiValidacion`), siempre que la estructura de tres (o cuatro) carpetas en la raíz se mantenga.
-- Una rama por feature, que se mergea a `main` cuando esa parte funciona.
 - Los integrantes deben tener commits distribuidos a lo largo de las 6 semanas en más de una parte del sistema — no vale que una sola persona haga toda una API de punta a punta y nunca toque el resto. Recomendado: rotar de área cada 1-2 semanas o trabajar en pares cruzados.
 
 ---
