@@ -81,6 +81,8 @@ Estas reglas — y no una lista de clases — son el punto de partida para decid
 - **Persistencia en archivos**, no en memoria: la información tiene que sobrevivir a un reinicio de cualquiera de las dos APIs. No se usa base de datos ni ORM — se serializa el estado a disco.
 - **Pruebas unitarias (NUnit)** sobre la lógica de negocio (las reglas de la sección 5), no sobre getters/setters. Cada una de las dos APIs tiene que tener su propio proyecto de lógica separado del proyecto de la API, y su propio proyecto de tests sobre esa lógica — no alcanza con testear una sola de las dos. El equipo decide qué casos de borde probar; se van a evaluar tanto los casos que tienen que funcionar como los que tienen que ser rechazados (entrada inexistente, ya usada, de otro evento, cupo agotado, evento cancelado, etc.).
 - **Frontend web** en HTML, CSS y JavaScript (sin frameworks) que consuma ambas APIs. No requiere login.
+- **Las entradas deben tener códigos únicos alfanumericos**: Los codigos de las entradas deben ser alfanumericos de 6 digitos asegurandose que el algoritmo para generarlo no repita valores en ninguna situación.
+- **Los archivos deben generarse y usarse con rutas relativas.**
 
 ---
 
