@@ -13,6 +13,7 @@
 - El curso se organiza en **9 equipos de 3 personas** y **2 equipos de 2 personas**. Los equipos de 2 personas no tienen que resolver las dos últimas pantallas de la sección 8 (control de acceso y consulta de una compra).
 - Cada equipo elige un **nombre**, relacionado con el trabajo, que no sea de temática religiosa, política ni racista.
 - Cada equipo crea un **canal de Slack** con el nombre del equipo, y suma al **Profesor Gonzalo** a ese canal.
+- En el hilo de slack del TP, un integrante por equipo debera indicar por quienes estan conformados los equipos, solamente los primeros 2 de 2 personas quedarán asi: https://programacion1-2026.slack.com/archives/C0AKJPB83KM/p1787261674846039
 - El nombre del repositorio se arma reemplazando `<nombre-del-equipo>` por el nombre elegido, por ejemplo: `2026-prog1-tpfinal-ticketflow`.
 
 ---
