@@ -2,6 +2,19 @@
 
 En esta unidad aprendemos a construir interfaces web. Veremos cómo funciona **HTML** para estructurar el contenido, **CSS** para darle estilo y **JavaScript** para agregar interactividad. Al final conectaremos el frontend con una API desarrollada en .NET Core.
 
+## El proyecto de la unidad
+
+A diferencia de otras unidades, acá no vamos a ver ejemplos sueltos y desconectados. Vamos a construir **un solo proyecto**, el catálogo de productos de una tienda de tecnología ficticia llamada **TechStore**, y en cada sección vamos a sumarle una pieza nueva. El proyecto vive en tres archivos:
+
+```
+catalogo/
+├── index.html   ← estructura (Sección 1)
+├── estilos.css  ← presentación (Sección 2)
+└── app.js       ← comportamiento (Sección 3)
+```
+
+Cada vez que aparezca el recuadro **🧩 Sumamos esto al proyecto**, ese código se agrega a uno de estos tres archivos. Al final de cada sección grande vas a encontrar el **archivo completo** tal como debería quedar hasta ese punto, para que puedas comparar tu propio avance. Te recomendamos ir escribiendo (no copiando y pegando) el código en tu propio editor con Live Server abierto, para ver cada cambio reflejado en el navegador.
+
 ---
 
 ## Sección 1: HTML - HyperText Markup Language
@@ -18,14 +31,13 @@ Conceptos clave:
 - **Atributo**: información adicional dentro de la etiqueta de apertura. Por ejemplo: `<img src="foto.jpg" alt="Mi foto">`.
 - **Documento HTML**: un archivo de texto con extensión `.html` que el navegador interpreta y renderiza visualmente.
 
-El navegador lee el archivo HTML de arriba hacia abajo y construye el **DOM** (Document Object Model), que es la representación interna del documento que luego puede ser manipulada con JavaScript.
+El navegador lee el archivo HTML de arriba hacia abajo y construye el **DOM** (Document Object Model), que es la representación interna del documento que luego puede ser manipulada con JavaScript. Volveremos sobre esto en la Sección 3.
 
 ```html
 <!DOCTYPE html>
 <html lang="es">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Mi Primera Página</title>
   </head>
   <body>
@@ -52,7 +64,11 @@ Todo documento HTML válido sigue una estructura fija:
 | `<link rel="stylesheet" href="...">` | Enlaza un archivo CSS externo. |
 | `<body>` | Contiene todo el contenido visible de la página. |
 
-Este es el **template base** que usaremos a lo largo de toda la unidad:
+> El `<script>` se coloca al final del `<body>` para que el HTML cargue antes de que JavaScript intente manipularlo. Ya lo dejamos preparado abajo, aunque `app.js` todavía no exista.
+
+Con esto arrancamos `catalogo/index.html`, el archivo que vamos a ir completando durante toda la unidad:
+
+🧩 **Sumamos esto al proyecto — `index.html` (versión inicial):**
 
 ```html
 <!DOCTYPE html>
@@ -60,19 +76,17 @@ Este es el **template base** que usaremos a lo largo de toda la unidad:
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Programación Visual - UCSE</title>
+    <title>TechStore - Catálogo de Productos</title>
     <link rel="stylesheet" href="estilos.css" />
   </head>
   <body>
 
-    <!-- Aquí va el contenido visible -->
+    <!-- Acá va a crecer el catálogo de productos durante toda la unidad -->
 
     <script src="app.js"></script>
   </body>
 </html>
 ```
-
-> El `<script>` se coloca al final del `<body>` para que el HTML cargue antes de que JavaScript intente manipularlo.
 
 ---
 
@@ -86,41 +100,22 @@ HTML ofrece seis niveles de encabezados (`<h1>` a `<h6>`) y varias etiquetas par
 | `<p>` | Párrafo |
 | `<strong>` | Texto en **negrita** (semánticamente importante) |
 | `<em>` | Texto en _cursiva_ (énfasis) |
-| `<u>` | Texto subrayado |
 | `<br>` | Salto de línea (etiqueta vacía, sin cierre) |
 | `<blockquote>` | Cita larga en bloque, con sangría |
-| `<q>` | Cita corta en línea |
 
 ```html
-<!DOCTYPE html>
-<html lang="es">
-  <head>
-    <meta charset="UTF-8" />
-    <title>Encabezados y Texto</title>
-  </head>
-  <body>
-    <h1>Encabezado nivel 1 - Título principal</h1>
-    <h2>Encabezado nivel 2 - Sección</h2>
-    <h3>Encabezado nivel 3 - Subsección</h3>
-    <h4>Encabezado nivel 4</h4>
-    <h5>Encabezado nivel 5</h5>
-    <h6>Encabezado nivel 6 - El más pequeño</h6>
+<blockquote>
+  "La simplicidad es la máxima sofisticación." — Leonardo da Vinci
+</blockquote>
+```
 
-    <p>
-      Este es un párrafo normal. Puede contener texto
-      <strong>en negrita</strong>, texto <em>en cursiva</em>,
-      texto <u>subrayado</u> y también<br />saltos de línea.
-    </p>
+🧩 **Sumamos esto al proyecto** (dentro de `<body>`, antes del comentario):
 
-    <blockquote>
-      "La simplicidad es la máxima sofisticación." — Leonardo da Vinci
-    </blockquote>
-
-    <p>
-      Como dijo Einstein: <q>La imaginación es más importante que el conocimiento.</q>
-    </p>
-  </body>
-</html>
+```html
+<header>
+  <h1>TechStore</h1>
+  <p>Tu tienda de tecnología <strong>online</strong>, con <em>envíos a todo el país</em>.</p>
+</header>
 ```
 
 ---
@@ -133,63 +128,19 @@ HTML soporta tres tipos de listas:
 - **`<ol>`** (_ordered list_): lista ordenada, con números o letras.
 - **`<dl>`** (_definition list_): lista de definiciones, con término (`<dt>`) y descripción (`<dd>`).
 
-Todos los ítems de `<ul>` y `<ol>` se marcan con `<li>`. Las listas pueden anidarse dentro de otras listas.
+Todos los ítems de `<ul>` y `<ol>` se marcan con `<li>`.
+
+🧩 **Sumamos esto al proyecto** (después del `<header>`, va a ser nuestra barra lateral de categorías):
 
 ```html
-<!DOCTYPE html>
-<html lang="es">
-  <head>
-    <meta charset="UTF-8" />
-    <title>Listas en HTML</title>
-  </head>
-  <body>
-
-    <!-- Lista de compras (desordenada) -->
-    <h2>Lista de compras</h2>
-    <ul>
-      <li>Frutas
-        <ul>
-          <li>Manzanas</li>
-          <li>Bananas</li>
-          <li>Naranjas</li>
-        </ul>
-      </li>
-      <li>Lácteos
-        <ul>
-          <li>Leche</li>
-          <li>Yogur</li>
-        </ul>
-      </li>
-      <li>Pan</li>
-      <li>Huevos</li>
-    </ul>
-
-    <!-- Receta paso a paso (ordenada) -->
-    <h2>Receta: Tortilla de papas</h2>
-    <ol>
-      <li>Pelar y cortar las papas en rodajas finas.</li>
-      <li>Calentar aceite en una sartén a fuego medio.</li>
-      <li>Freír las papas hasta que estén tiernas (no doradas).</li>
-      <li>Batir los huevos en un bowl y salpimentar.</li>
-      <li>Mezclar las papas con los huevos batidos.</li>
-      <li>Verter la mezcla en la sartén y cocinar a fuego bajo.</li>
-      <li>Dar vuelta con un plato y cocinar el otro lado.</li>
-      <li>Servir caliente o a temperatura ambiente.</li>
-    </ol>
-
-    <!-- Lista de definiciones -->
-    <h2>Glosario web</h2>
-    <dl>
-      <dt>HTML</dt>
-      <dd>Lenguaje de marcado para estructurar el contenido de una página web.</dd>
-      <dt>CSS</dt>
-      <dd>Lenguaje de estilos para dar formato y presentación a documentos HTML.</dd>
-      <dt>JavaScript</dt>
-      <dd>Lenguaje de programación que permite agregar interactividad a las páginas web.</dd>
-    </dl>
-
-  </body>
-</html>
+<aside>
+  <h3>Categorías</h3>
+  <ul id="lista-categorias">
+    <li>Periféricos</li>
+    <li>Computadoras</li>
+    <li>Accesorios</li>
+  </ul>
+</aside>
 ```
 
 ---
@@ -203,53 +154,31 @@ HTML permite incrustar distintos tipos de medios en una página.
 | `<img>` | Muestra una imagen. Etiqueta vacía (sin cierre). |
 | `<video>` | Reproduce un video. Admite múltiples `<source>`. |
 | `<audio>` | Reproduce audio. Admite múltiples `<source>`. |
-| `<iframe>` | Incrusta contenido externo (Google Maps, YouTube, etc.). |
+| `<iframe>` | Incrusta contenido externo (mapas, videos de YouTube, etc.). |
 
-El atributo `alt` en `<img>` es **obligatorio**: describe la imagen para lectores de pantalla y se muestra si la imagen no carga. Siempre hay que escribirlo con una descripción significativa.
+El atributo `alt` en `<img>` es **obligatorio**: describe la imagen para lectores de pantalla y se muestra si la imagen no carga.
 
 ```html
-<!DOCTYPE html>
-<html lang="es">
-  <head>
-    <meta charset="UTF-8" />
-    <title>Imágenes y Multimedia</title>
-  </head>
-  <body>
+<!-- Referencia: video con controles -->
+<video width="640" height="360" controls>
+  <source src="videos/intro.mp4" type="video/mp4" />
+  Tu navegador no soporta el elemento de video.
+</video>
+```
 
-    <!-- Imagen con todos los atributos recomendados -->
-    <img
-      src="imagenes/paisaje.jpg"
-      alt="Fotografía de un lago rodeado de montañas al atardecer"
-      width="800"
-      height="450"
-    />
+🧩 **Sumamos esto al proyecto** (en una nueva sección "Sobre nosotros", que va después de la lista de categorías):
 
-    <!-- Video con controles -->
-    <video width="640" height="360" controls>
-      <source src="videos/intro.mp4" type="video/mp4" />
-      <source src="videos/intro.webm" type="video/webm" />
-      Tu navegador no soporta el elemento de video.
-    </video>
-
-    <!-- Audio con controles -->
-    <audio controls>
-      <source src="audios/musica.mp3" type="audio/mpeg" />
-      Tu navegador no soporta el elemento de audio.
-    </audio>
-
-    <!-- Iframe para incrustar un mapa de Google -->
-    <iframe
-      src="https://www.google.com/maps/embed?pb=..."
-      width="600"
-      height="450"
-      style="border:0;"
-      allowfullscreen=""
-      loading="lazy"
-      title="Mapa de ubicación"
-    ></iframe>
-
-  </body>
-</html>
+```html
+<section id="nosotros">
+  <h2>Sobre nosotros</h2>
+  <img
+    src="imagenes/equipo.jpg"
+    alt="Equipo de TechStore trabajando en el local"
+    width="800"
+    height="400"
+  />
+  <p>Somos una tienda de tecnología con más de 10 años en el mercado, especializada en computadoras y periféricos.</p>
+</section>
 ```
 
 ---
@@ -264,65 +193,32 @@ El elemento `<a>` (_anchor_) crea hipervínculos. El atributo `href` (_Hypertext
 | URL relativa (interno) | `contacto.html` o `../index.html` |
 | Ancla en la misma página | `#seccion-2` |
 | Correo electrónico | `mailto:info@ejemplo.com` |
-| Teléfono | `tel:+5491112345678` |
 
 El atributo `target="_blank"` abre el enlace en una nueva pestaña. Siempre combinar con `rel="noopener noreferrer"` por seguridad.
 
+🧩 **Sumamos esto al proyecto** — un menú de navegación por anclas dentro del `<header>`, y un pie de página con el mail de contacto:
+
 ```html
-<!DOCTYPE html>
-<html lang="es">
-  <head>
-    <meta charset="UTF-8" />
-    <title>Enlaces en HTML</title>
-  </head>
-  <body>
-
-    <!-- Menú de navegación interna -->
-    <nav>
-      <a href="#inicio">Inicio</a> |
-      <a href="#nosotros">Nosotros</a> |
-      <a href="#servicios">Servicios</a> |
-      <a href="#contacto">Contacto</a>
-    </nav>
-
-    <!-- Enlace a sitio externo, se abre en nueva pestaña -->
-    <p>
-      Visita la
-      <a href="https://developer.mozilla.org/es/" target="_blank" rel="noopener noreferrer">
-        documentación de MDN
-      </a>
-      para más información.
-    </p>
-
-    <!-- Secciones con id para las anclas -->
-    <section id="inicio">
-      <h2>Inicio</h2>
-      <p>Bienvenidos a nuestra página.</p>
-    </section>
-
-    <section id="nosotros">
-      <h2>Nosotros</h2>
-      <p>Somos un equipo de desarrolladores.</p>
-    </section>
-
-    <section id="servicios">
-      <h2>Servicios</h2>
-      <p>Desarrollo web, aplicaciones móviles y más.</p>
-    </section>
-
-    <section id="contacto">
-      <h2>Contacto</h2>
-      <p>
-        Escribinos a
-        <a href="mailto:info@empresa.com">info@empresa.com</a>
-        o llamanos al
-        <a href="tel:+5493415001000">+54 341 500-1000</a>.
-      </p>
-    </section>
-
-  </body>
-</html>
+<header>
+  <h1>TechStore</h1>
+  <p>Tu tienda de tecnología <strong>online</strong>, con <em>envíos a todo el país</em>.</p>
+  <nav>
+    <a href="#catalogo">Catálogo</a>
+    <a href="#comparativa">Comparativa</a>
+    <a href="#agregar">Agregar producto</a>
+    <a href="#nosotros">Nosotros</a>
+  </nav>
+</header>
 ```
+
+```html
+<footer>
+  <p>&copy; 2026 TechStore - UCSE</p>
+  <p>Contacto: <a href="mailto:info@techstore.com">info@techstore.com</a></p>
+</footer>
+```
+
+(El `<footer>` va al final del `<body>`, justo antes del `<script>`.)
 
 ---
 
@@ -335,176 +231,85 @@ Las tablas se usan para mostrar datos tabulares (filas y columnas). **No** deben
 | `<table>` | Contenedor de la tabla |
 | `<thead>` | Grupo de filas de encabezado |
 | `<tbody>` | Grupo de filas de datos |
-| `<tfoot>` | Grupo de filas de pie |
 | `<tr>` | Fila (_table row_) |
-| `<th>` | Celda de encabezado (_table header_), en negrita y centrada por defecto |
+| `<th>` | Celda de encabezado (_table header_) |
 | `<td>` | Celda de datos (_table data_) |
-| `colspan` | Une varias columnas en una sola celda |
-| `rowspan` | Une varias filas en una sola celda |
+
+En nuestro catálogo, el listado principal de productos lo vamos a mostrar como **tarjetas** (con CSS Grid, más adelante), pero una tabla sigue siendo la forma correcta de mostrar una comparativa de datos tabulares. Vamos a agregar una sección de comparativa rápida, cuyas filas va a completar JavaScript en la Sección 3.
+
+🧩 **Sumamos esto al proyecto** (nueva sección, después de "Categorías"):
 
 ```html
-<!DOCTYPE html>
-<html lang="es">
-  <head>
-    <meta charset="UTF-8" />
-    <title>Tabla de Calificaciones</title>
-    <style>
-      table { border-collapse: collapse; width: 100%; }
-      th, td { border: 1px solid #ccc; padding: 8px 12px; text-align: center; }
-      thead { background-color: #2c3e50; color: white; }
-      tfoot { background-color: #ecf0f1; font-weight: bold; }
-      tr:nth-child(even) { background-color: #f9f9f9; }
-    </style>
-  </head>
-  <body>
-
-    <h2>Calificaciones - Programación I (2025)</h2>
-
-    <table>
-      <thead>
-        <tr>
-          <th rowspan="2">Alumno</th>
-          <th colspan="3">Parciales</th>
-          <th rowspan="2">Promedio</th>
-        </tr>
-        <tr>
-          <th>Parcial 1</th>
-          <th>Parcial 2</th>
-          <th>Recuperatorio</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td>García, Lucía</td>
-          <td>8</td>
-          <td>9</td>
-          <td>-</td>
-          <td>8.5</td>
-        </tr>
-        <tr>
-          <td>Martínez, Juan</td>
-          <td>6</td>
-          <td>5</td>
-          <td>7</td>
-          <td>6.5</td>
-        </tr>
-        <tr>
-          <td>Rodríguez, Ana</td>
-          <td>10</td>
-          <td>9</td>
-          <td>-</td>
-          <td>9.5</td>
-        </tr>
-        <tr>
-          <td>López, Carlos</td>
-          <td>4</td>
-          <td>6</td>
-          <td>8</td>
-          <td>7</td>
-        </tr>
-      </tbody>
-      <tfoot>
-        <tr>
-          <td>Promedio del curso</td>
-          <td>7</td>
-          <td>7.25</td>
-          <td>-</td>
-          <td>7.875</td>
-        </tr>
-      </tfoot>
-    </table>
-
-  </body>
-</html>
+<section id="comparativa">
+  <h2>Comparativa de destacados</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Producto</th>
+        <th>Precio</th>
+        <th>Stock</th>
+        <th>Categoría</th>
+      </tr>
+    </thead>
+    <tbody id="tabla-comparativa">
+      <!-- Las filas se generan dinámicamente con JavaScript (Sección 3) -->
+    </tbody>
+  </table>
+</section>
 ```
 
 ---
 
 ### 8. Formularios
 
-Los formularios permiten al usuario enviar datos al servidor. El elemento `<form>` agrupa todos los controles.
+Los formularios permiten al usuario enviar datos. El elemento `<form>` agrupa todos los controles.
 
-- `action`: URL a la que se envían los datos. Si se omite, se envía a la misma página.
-- `method`: `GET` (datos en la URL) o `POST` (datos en el cuerpo, más seguro para contraseñas).
+Siempre vincular cada `<label>` a su `<input>` con el atributo `for` (que debe coincidir con el `id` del input). Esto mejora la accesibilidad.
 
-Siempre vincular cada `<label>` a su `<input>` con el atributo `for` (que debe coincidir con el `id` del input). Esto mejora la accesibilidad y la usabilidad.
+HTML5 trae **validación nativa** sin necesidad de JavaScript, a través de atributos:
+
+| Atributo | Efecto |
+|---|---|
+| `required` | El campo no puede quedar vacío |
+| `minlength` / `maxlength` | Longitud mínima/máxima de texto |
+| `min` / `max` | Valor mínimo/máximo (números, fechas) |
+| `pattern` | Expresión regular que el valor debe cumplir |
+| `type="email"`, `type="number"` | El navegador valida el formato automáticamente |
+
+Si un campo no cumple sus reglas, el navegador **bloquea el envío** del formulario y muestra un mensaje, sin escribir una sola línea de JavaScript. En la Sección 3 vamos a combinar esto con validación propia en JS para casos más específicos.
+
+🧩 **Sumamos esto al proyecto** — el formulario para agregar productos al catálogo (nueva sección):
 
 ```html
-<!DOCTYPE html>
-<html lang="es">
-  <head>
-    <meta charset="UTF-8" />
-    <title>Formularios</title>
-    <style>
-      form { max-width: 400px; margin: 20px auto; }
-      label { display: block; margin-top: 12px; font-weight: bold; }
-      input, select, textarea { width: 100%; padding: 8px; margin-top: 4px; box-sizing: border-box; }
-      button { margin-top: 16px; padding: 10px 24px; background: #2c3e50; color: white; border: none; cursor: pointer; }
-    </style>
-  </head>
-  <body>
+<section id="agregar">
+  <h2>Agregar producto</h2>
+  <form id="form-producto">
+    <label for="input-nombre">Nombre:</label>
+    <input type="text" id="input-nombre" required minlength="2" />
 
-    <!-- Formulario de inicio de sesión -->
-    <h2>Iniciar Sesión</h2>
-    <form action="/api/login" method="POST">
-      <label for="email">Correo electrónico:</label>
-      <input type="email" id="email" name="email" placeholder="usuario@ejemplo.com" required />
+    <label for="input-precio">Precio:</label>
+    <input type="number" id="input-precio" min="0" step="0.01" required />
 
-      <label for="password">Contraseña:</label>
-      <input type="password" id="password" name="password" placeholder="••••••••" required />
+    <label for="input-stock">Stock:</label>
+    <input type="number" id="input-stock" min="0" required />
 
-      <button type="submit">Ingresar</button>
-    </form>
+    <label for="input-categoria">Categoría:</label>
+    <select id="input-categoria">
+      <option value="perifericos">Periféricos</option>
+      <option value="computadoras">Computadoras</option>
+      <option value="accesorios">Accesorios</option>
+    </select>
 
-    <hr />
-
-    <!-- Formulario de registro -->
-    <h2>Registro de Usuario</h2>
-    <form action="/api/registro" method="POST">
-      <label for="nombre">Nombre completo:</label>
-      <input type="text" id="nombre" name="nombre" placeholder="Juan Pérez" required />
-
-      <label for="email-reg">Correo electrónico:</label>
-      <input type="email" id="email-reg" name="email" required />
-
-      <label for="edad">Edad:</label>
-      <input type="number" id="edad" name="edad" min="18" max="100" />
-
-      <label for="carrera">Carrera:</label>
-      <select id="carrera" name="carrera">
-        <option value="">-- Seleccionar --</option>
-        <option value="sistemas">Ingeniería en Sistemas</option>
-        <option value="informatica">Licenciatura en Informática</option>
-        <option value="redes">Tecnicatura en Redes</option>
-      </select>
-
-      <label>Género:</label>
-      <label><input type="radio" name="genero" value="M" /> Masculino</label>
-      <label><input type="radio" name="genero" value="F" /> Femenino</label>
-      <label><input type="radio" name="genero" value="otro" /> Otro / Prefiero no decir</label>
-
-      <label for="comentarios">Comentarios adicionales:</label>
-      <textarea id="comentarios" name="comentarios" rows="4" placeholder="Escribe aquí..."></textarea>
-
-      <label>
-        <input type="checkbox" name="terminos" required />
-        Acepto los términos y condiciones
-      </label>
-
-      <button type="submit">Registrarse</button>
-    </form>
-
-  </body>
-</html>
+    <button type="submit">Agregar al catálogo</button>
+  </form>
+</section>
 ```
 
 ---
 
-### 9. Div y Semántica
+### 9. Div, Semántica y Checkpoint del HTML
 
-El elemento `<div>` es un contenedor genérico sin significado semántico. Es útil para agrupar elementos con fines de estilo o scripting.
-
-HTML5 introdujo **elementos semánticos** que reemplazan el uso de múltiples `<div>` cuando el contenido tiene un rol específico:
+El elemento `<div>` es un contenedor genérico sin significado semántico. HTML5 introdujo **elementos semánticos** que reemplazan el uso de múltiples `<div>` cuando el contenido tiene un rol específico:
 
 | Elemento | Descripción |
 |---|---|
@@ -512,65 +317,137 @@ HTML5 introdujo **elementos semánticos** que reemplazan el uso de múltiples `<
 | `<nav>` | Bloque de navegación (menús, links) |
 | `<main>` | Contenido principal único de la página |
 | `<section>` | Sección temática del contenido |
-| `<article>` | Contenido independiente y autocontenido (un post, una noticia) |
+| `<article>` | Contenido independiente y autocontenido (una tarjeta de producto, por ejemplo) |
 | `<aside>` | Contenido relacionado pero secundario (barra lateral) |
 | `<footer>` | Pie de página o de sección |
 
-Usar semántica correcta mejora la **accesibilidad** (lectores de pantalla), el **SEO** (motores de búsqueda entienden mejor el contenido) y la **mantenibilidad** del código.
+Usar semántica correcta mejora la **accesibilidad**, el **SEO** y la **mantenibilidad** del código. Cerramos la parte de HTML envolviendo todo lo que construimos en un `<main>`, y agregando el contenedor donde va a vivir la grilla de productos (todavía vacío: lo va a llenar JavaScript).
+
+Un `<div>` sigue siendo perfectamente válido cuando **no** hay una etiqueta semántica que describa mejor el contenido — como el contenedor de la grilla de tarjetas, que es solo una caja de layout.
+
+🧩 **Sumamos esto al proyecto** — el catálogo (grilla de productos) va como primera sección dentro de `<main>`, antes de "Comparativa":
+
+```html
+<section id="catalogo">
+  <h2>Nuestros productos</h2>
+  <p>Encontrá los mejores accesorios de tecnología a un clic.</p>
+
+  <div id="estado-carga">Cargando productos...</div>
+  <div class="grid-productos" id="grid-productos">
+    <!-- Las tarjetas de producto se generan dinámicamente con JavaScript -->
+  </div>
+</section>
+```
+
+#### ✅ Checkpoint — `index.html` completo
 
 ```html
 <!DOCTYPE html>
 <html lang="es">
   <head>
     <meta charset="UTF-8" />
-    <title>Layout Semántico</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TechStore - Catálogo de Productos</title>
+    <link rel="stylesheet" href="estilos.css" />
   </head>
   <body>
 
     <header>
-      <h1>Blog de Tecnología</h1>
+      <h1>TechStore</h1>
+      <p>Tu tienda de tecnología <strong>online</strong>, con <em>envíos a todo el país</em>.</p>
       <nav>
-        <a href="/">Inicio</a>
-        <a href="/articulos">Artículos</a>
-        <a href="/acerca">Acerca de</a>
+        <a href="#catalogo">Catálogo</a>
+        <a href="#comparativa">Comparativa</a>
+        <a href="#agregar">Agregar producto</a>
+        <a href="#nosotros">Nosotros</a>
       </nav>
     </header>
 
     <main>
-      <section>
-        <h2>Artículos recientes</h2>
+      <div class="contenido">
+        <section id="catalogo">
+          <h2>Nuestros productos</h2>
+          <p>Encontrá los mejores accesorios de tecnología a un clic.</p>
 
-        <article>
-          <h3>Introducción a HTML5</h3>
-          <p>Publicado el 20 de marzo de 2025</p>
-          <p>HTML5 trajo nuevas etiquetas semánticas que facilitan...</p>
-        </article>
+          <div id="estado-carga">Cargando productos...</div>
+          <div class="grid-productos" id="grid-productos">
+            <!-- Las tarjetas de producto se generan dinámicamente con JavaScript -->
+          </div>
+        </section>
 
-        <article>
-          <h3>CSS Grid vs Flexbox</h3>
-          <p>Publicado el 15 de marzo de 2025</p>
-          <p>Ambas técnicas de layout tienen sus casos de uso...</p>
-        </article>
-      </section>
+        <section id="comparativa">
+          <h2>Comparativa de destacados</h2>
+          <table>
+            <thead>
+              <tr>
+                <th>Producto</th>
+                <th>Precio</th>
+                <th>Stock</th>
+                <th>Categoría</th>
+              </tr>
+            </thead>
+            <tbody id="tabla-comparativa">
+              <!-- Las filas se generan dinámicamente con JavaScript -->
+            </tbody>
+          </table>
+        </section>
+
+        <section id="agregar">
+          <h2>Agregar producto</h2>
+          <form id="form-producto">
+            <label for="input-nombre">Nombre:</label>
+            <input type="text" id="input-nombre" required minlength="2" />
+
+            <label for="input-precio">Precio:</label>
+            <input type="number" id="input-precio" min="0" step="0.01" required />
+
+            <label for="input-stock">Stock:</label>
+            <input type="number" id="input-stock" min="0" required />
+
+            <label for="input-categoria">Categoría:</label>
+            <select id="input-categoria">
+              <option value="perifericos">Periféricos</option>
+              <option value="computadoras">Computadoras</option>
+              <option value="accesorios">Accesorios</option>
+            </select>
+
+            <button type="submit">Agregar al catálogo</button>
+          </form>
+        </section>
+
+        <section id="nosotros">
+          <h2>Sobre nosotros</h2>
+          <img
+            src="imagenes/equipo.jpg"
+            alt="Equipo de TechStore trabajando en el local"
+            width="800"
+            height="400"
+          />
+          <p>Somos una tienda de tecnología con más de 10 años en el mercado, especializada en computadoras y periféricos.</p>
+        </section>
+      </div>
 
       <aside>
-        <h3>Etiquetas populares</h3>
-        <ul>
-          <li>HTML</li>
-          <li>CSS</li>
-          <li>JavaScript</li>
-          <li>.NET</li>
+        <h3>Categorías</h3>
+        <ul id="lista-categorias">
+          <li>Periféricos</li>
+          <li>Computadoras</li>
+          <li>Accesorios</li>
         </ul>
       </aside>
     </main>
 
     <footer>
-      <p>&copy; 2025 Blog de Tecnología - UCSE</p>
+      <p>&copy; 2026 TechStore - UCSE</p>
+      <p>Contacto: <a href="mailto:info@techstore.com">info@techstore.com</a></p>
     </footer>
 
+    <script src="app.js"></script>
   </body>
 </html>
 ```
+
+> Nota: agregamos un `<div class="contenido">` envolviendo las cuatro secciones principales, como hermano de `<aside>`. Es un `<div>` puramente de layout (no representa nada semántico), y nos va a servir en la Sección 2 para armar un diseño de dos columnas con Flexbox. Si abrís este archivo con Live Server ahora, vas a ver todo el contenido sin ningún estilo — eso es exactamente lo que ataca la Sección 2.
 
 ---
 
