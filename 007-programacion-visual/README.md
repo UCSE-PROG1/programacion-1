@@ -450,3 +450,642 @@ Un `<div>` sigue siendo perfectamente válido cuando **no** hay una etiqueta sem
 > Nota: agregamos un `<div class="contenido">` envolviendo las cuatro secciones principales, como hermano de `<aside>`. Es un `<div>` puramente de layout (no representa nada semántico), y nos va a servir en la Sección 2 para armar un diseño de dos columnas con Flexbox. Si abrís este archivo con Live Server ahora, vas a ver todo el contenido sin ningún estilo — eso es exactamente lo que ataca la Sección 2.
 
 ---
+
+## Sección 2: CSS - Cascading Style Sheets
+
+---
+
+### 10. ¿Qué es CSS?
+
+CSS (_Cascading Style Sheets_) es el lenguaje que controla la presentación visual de los documentos HTML: colores, tipografías, tamaños, márgenes, disposición de los elementos, animaciones, etc.
+
+Hay tres formas de agregar CSS a un documento HTML:
+
+**1. Inline** (en línea): directamente en el atributo `style` del elemento. Mezcla estructura y presentación, difícil de mantener.
+```html
+<p style="color: red; font-size: 18px;">Texto rojo</p>
+```
+
+**2. Internal** (interno): dentro de una etiqueta `<style>` en el `<head>`. Útil para pruebas rápidas, pero no reutilizable.
+
+**3. External** (externo): en un archivo `.css` separado, enlazado desde el HTML con `<link>`. Es el método **recomendado** y el que ya dejamos preparado en `index.html` con `<link rel="stylesheet" href="estilos.css" />`.
+
+La sintaxis básica de una regla CSS:
+
+```css
+/* selector { propiedad: valor; } */
+
+p {
+  color: #333333;
+  font-size: 16px;
+  line-height: 1.6;
+}
+```
+
+Vamos a ir armando `catalogo/estilos.css` en el mismo orden en que aparecen los temas.
+
+---
+
+### 11. Selectores
+
+Los selectores determinan a qué elementos HTML se aplican los estilos.
+
+```css
+/* ── Selector de elemento ── aplica a todos los <p> */
+p { color: #333; }
+
+/* ── Selector de clase ── aplica a cualquier elemento con class="destacado" */
+.destacado { background-color: yellow; }
+
+/* ── Selector de ID ── aplica al elemento con ese id (único por página) */
+#titulo-principal { font-size: 2rem; }
+
+/* ── Selector descendiente ── <a> dentro de <nav> */
+nav a { color: white; }
+
+/* ── Selectores múltiples ── mismo estilo para varios selectores ── */
+h1, h2, h3 { font-family: 'Segoe UI', Arial, sans-serif; }
+
+/* ── Selector de atributo ── inputs de tipo number ── */
+input[type="number"] { text-align: right; }
+```
+
+🧩 **Sumamos esto al proyecto** — arrancamos `estilos.css` con el reset de `box-sizing` (lo justificamos en la sección 14) y la tipografía base:
+
+```css
+/* estilos.css */
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: 'Segoe UI', Arial, sans-serif;
+  line-height: 1.6;
+}
+```
+
+---
+
+### 12. Colores y Tipografía
+
+**Formas de definir colores:**
+- Nombre: `red`, `white`, `black`, etc.
+- Hexadecimal: `#FF5733`.
+- RGB / RGBA: `rgb(255, 87, 51)` / `rgba(255, 87, 51, 0.8)` (el cuarto valor es la opacidad, de 0 a 1).
+
+```css
+h2 {
+  color: #2c3e50;
+  font-weight: 700;          /* bold */
+  text-align: center;
+}
+```
+
+🧩 **Sumamos esto al proyecto:**
+
+```css
+body {
+  margin: 0;
+  font-family: 'Segoe UI', Arial, sans-serif;
+  line-height: 1.6;
+  color: #333333;
+  background-color: #f5f5f5;
+}
+
+h1, h2, h3 {
+  color: #2c3e50;
+}
+```
+
+---
+
+### 13. Variables CSS (Custom Properties)
+
+Repetir el mismo color o medida en decenas de reglas es difícil de mantener: si querés cambiar el color principal de la marca, hay que buscarlo en todo el archivo. Las **variables CSS** (_custom properties_) resuelven esto: se definen una vez y se reutilizan con `var()`.
+
+Se definen dentro de un selector — casi siempre `:root`, que representa al elemento `<html>` y hace que la variable esté disponible en **todo** el documento:
+
+```css
+:root {
+  --color-primario: #2c3e50;
+  --color-secundario: #3498db;
+  --espaciado: 1rem;
+}
+
+.boton {
+  background-color: var(--color-primario);
+  padding: var(--espaciado);
+}
+
+.boton:hover {
+  background-color: var(--color-secundario);
+}
+```
+
+A diferencia de un preprocesador como Sass, las variables CSS son **nativas del navegador**, se pueden leer y modificar con JavaScript (`elemento.style.setProperty(...)`), y respetan la cascada: se puede redefinir el valor de una variable dentro de una clase o de un `@media` para cambiar un tema completo con una sola línea.
+
+🧩 **Sumamos esto al proyecto** — definimos la paleta y las medidas que vamos a usar en el resto de la hoja de estilos:
+
+```css
+:root {
+  --color-primario: #2c3e50;
+  --color-secundario: #3498db;
+  --color-fondo: #f5f5f5;
+  --color-texto: #333333;
+  --color-error: #e74c3c;
+  --color-exito: #2ecc71;
+  --radio-borde: 8px;
+  --espaciado: 1rem;
+}
+
+body {
+  margin: 0;
+  font-family: 'Segoe UI', Arial, sans-serif;
+  line-height: 1.6;
+  color: var(--color-texto);
+  background-color: var(--color-fondo);
+}
+
+h1, h2, h3 {
+  color: var(--color-primario);
+}
+```
+
+(Esto reemplaza los colores "a mano" que habíamos puesto en el paso anterior.)
+
+---
+
+### 14. El Modelo de Caja (Box Model)
+
+En CSS, **todo elemento es una caja**. El modelo de caja describe cómo se calcula el tamaño total de un elemento:
+
+```
+┌─────────────────────────────────────────┐
+│               MARGIN                    │  ← espacio exterior (transparente)
+│  ┌───────────────────────────────────┐  │
+│  │             BORDER                │  │  ← borde (tiene grosor y color)
+│  │  ┌─────────────────────────────┐  │  │
+│  │  │           PADDING           │  │  │  ← espacio interior (toma el color de fondo)
+│  │  │  ┌───────────────────────┐  │  │  │
+│  │  │  │       CONTENT         │  │  │  │  ← texto, imagen, etc.
+│  │  │  └───────────────────────┘  │  │  │
+│  │  └─────────────────────────────┘  │  │
+│  └───────────────────────────────────┘  │
+└─────────────────────────────────────────┘
+```
+
+Por defecto, `width` y `height` solo afectan al **content**. Con `box-sizing: border-box` (que ya aplicamos globalmente en la sección 11), el `width` incluye padding y border, lo que es mucho más intuitivo y evita sorpresas al calcular anchos.
+
+```css
+.caja {
+  width: 300px;
+  padding: 20px;
+  border: 2px solid #2980b9;
+  /* con border-box, el ancho TOTAL sigue siendo 300px */
+}
+```
+
+🧩 **Sumamos esto al proyecto** — la tarjeta de producto (todavía no se ve porque JS aún no genera ninguna, pero ya dejamos la clase lista):
+
+```css
+.tarjeta-producto {
+  background: white;
+  border-radius: var(--radio-borde);
+  padding: 1.25rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.tarjeta-producto h3 {
+  margin-top: 0;
+}
+```
+
+---
+
+### 15. Display y Flexbox
+
+La propiedad `display` controla cómo se comporta un elemento en el flujo del documento.
+
+| Valor | Comportamiento |
+|---|---|
+| `block` | Ocupa todo el ancho disponible, con salto de línea antes y después. (`<div>`, `<p>`, `<h1>`) |
+| `inline` | Solo ocupa lo necesario, sin salto de línea. No acepta `width`/`height`. (`<span>`, `<a>`) |
+| `flex` | Activa **Flexbox** para el elemento y sus hijos directos. |
+| `none` | Oculta el elemento (no ocupa espacio). |
+
+**Flexbox** es el sistema de layout pensado para distribuir elementos en **una** dimensión (fila o columna):
+
+```css
+.navbar {
+  display: flex;
+  justify-content: space-between; /* distribución horizontal */
+  align-items: center;            /* alineación vertical */
+  gap: 24px;                      /* espacio entre hijos */
+}
+```
+
+🧩 **Sumamos esto al proyecto** — el header con Flexbox, y el layout de dos columnas (`contenido` + `aside`) que dejamos preparado en el HTML:
+
+```css
+header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  background-color: var(--color-primario);
+  color: white;
+  padding: var(--espaciado);
+}
+
+header h1 { color: white; margin: 0; }
+
+header nav {
+  display: flex;
+  gap: 1.5rem;
+}
+
+header nav a {
+  color: white;
+  text-decoration: none;
+}
+
+main {
+  max-width: 1200px;
+  width: 90%;
+  margin: 0 auto;
+  padding: var(--espaciado) 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.contenido { flex: 3; }
+aside { flex: 1; }
+
+aside ul {
+  list-style: none;
+  padding: 0;
+}
+
+footer {
+  background: var(--color-primario);
+  color: white;
+  text-align: center;
+  padding: var(--espaciado);
+}
+
+footer a { color: white; }
+```
+
+Por ahora `main` se muestra en columna (mobile-first): el catálogo, la comparativa, el formulario y "nosotros" arriba, y la barra de categorías abajo. En la sección 19 (Responsive Design) vamos a hacer que `main` pase a `flex-direction: row` en pantallas grandes, para que `aside` quede como una columna lateral.
+
+---
+
+### 16. CSS Grid
+
+Mientras Flexbox distribuye elementos en una sola dimensión, **CSS Grid** está pensado para layouts de **dos dimensiones**: filas y columnas a la vez. Es la herramienta ideal para una grilla de tarjetas, como la de nuestro catálogo.
+
+```css
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr); /* 3 columnas de igual ancho */
+  gap: 16px;
+}
+```
+
+El patrón más usado para grillas de tarjetas **responsive sin media queries** es `repeat(auto-fill, minmax(...))`: el navegador calcula solo cuántas columnas entran, y cada una mide como mínimo el primer valor y como máximo el segundo.
+
+```css
+.grid-productos {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 16px;
+}
+```
+
+Con esto, si la pantalla es angosta entra una sola columna de tarjetas; si es ancha, entran varias, todas del mismo tamaño, **sin escribir ni una media query**.
+
+🧩 **Sumamos esto al proyecto** — la grilla del catálogo:
+
+```css
+.grid-productos {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: var(--espaciado);
+  margin-top: 1rem;
+}
+```
+
+> `display: flex` y `display: grid` no son excluyentes: en esta misma hoja de estilos usamos Flexbox para el layout general de la página (`header`, `main`) y Grid para la grilla de tarjetas. Cada uno se elige según si el problema es de una dimensión o de dos.
+
+---
+
+### 17. Unidades de Medida y `clamp()`
+
+CSS ofrece unidades absolutas y relativas:
+
+| Unidad | Tipo | Relativa a... | Uso recomendado |
+|---|---|---|---|
+| `px` | Absoluta | - | Bordes, sombras, valores fijos pequeños |
+| `%` | Relativa | El contenedor padre | Anchos fluidos |
+| `rem` | Relativa | El `font-size` del elemento raíz (`html`) | Tipografía y espaciado consistente |
+| `vh` / `vw` | Relativa | Alto / ancho del viewport | Secciones de pantalla completa |
+
+La ventaja de `rem` es que si el usuario cambia el tamaño de fuente en su navegador, toda la tipografía escala proporcionalmente. Por eso preferimos `rem` a `px` para fuentes y espaciados.
+
+La función **`clamp(mínimo, preferido, máximo)`** permite que un valor escale de forma fluida entre un piso y un techo, sin necesidad de una media query para cada tamaño de pantalla:
+
+```css
+h1 {
+  /* nunca más chico que 1.75rem, nunca más grande que 2.5rem,
+     y en el medio escala con el ancho del viewport (4vw) */
+  font-size: clamp(1.75rem, 4vw, 2.5rem);
+}
+```
+
+🧩 **Sumamos esto al proyecto:**
+
+```css
+html {
+  font-size: 16px;
+}
+
+h1 {
+  font-size: clamp(1.75rem, 4vw, 2.5rem);
+}
+
+h2 {
+  font-size: clamp(1.4rem, 3vw, 2rem);
+}
+```
+
+---
+
+### 18. Pseudoclases y Pseudoelementos
+
+Las **pseudoclases** aplican estilos según el estado del elemento (`:hover`, `:focus`) o su posición en el DOM (`:first-child`, `:nth-child`). Los **pseudoelementos** permiten estilizar partes específicas de un elemento (`::before`, `::after`).
+
+```css
+a:hover { text-decoration: underline; }
+
+input:focus {
+  outline: 2px solid var(--color-secundario);
+}
+
+tr:nth-child(even) { background-color: #f2f2f2; }
+```
+
+Dos pseudoclases muy útiles junto con la validación HTML5 que vimos en la sección 8: **`:valid`** y **`:invalid`** aplican estilos según si el valor actual del campo cumple sus reglas (`required`, `min`, `type="email"`, etc.), sin una sola línea de JavaScript.
+
+🧩 **Sumamos esto al proyecto** — hover en la tarjeta y en el botón, y feedback visual de validación en el formulario:
+
+```css
+.tarjeta-producto {
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.tarjeta-producto:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+}
+
+.tarjeta-producto .precio {
+  font-weight: 700;
+  color: var(--color-secundario);
+  font-size: 1.2rem;
+}
+
+.btn-favorito {
+  border: none;
+  background: none;
+  font-size: 1.4rem;
+  cursor: pointer;
+}
+
+.btn-favorito.activo { color: var(--color-error); }
+
+form { max-width: 400px; }
+label { display: block; margin-top: 12px; font-weight: bold; }
+input, select { width: 100%; padding: 8px; margin-top: 4px; }
+
+/* Solo se marcan en rojo/verde los campos que el usuario ya tocó */
+input:not(:placeholder-shown):invalid { border-color: var(--color-error); }
+input:not(:placeholder-shown):valid { border-color: var(--color-exito); }
+
+button[type="submit"] {
+  margin-top: 16px;
+  padding: 10px 24px;
+  background: var(--color-primario);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+button[type="submit"]:hover {
+  background: var(--color-secundario);
+}
+
+table { border-collapse: collapse; width: 100%; }
+th, td { border: 1px solid #ccc; padding: 8px 12px; text-align: center; }
+thead { background-color: var(--color-primario); color: white; }
+```
+
+---
+
+### 19. Responsive Design y Checkpoint del CSS
+
+El diseño responsive permite que una misma página se vea bien en pantallas de distintos tamaños. Las **media queries** aplican estilos solo cuando se cumplen ciertas condiciones (ancho de pantalla, orientación, etc.).
+
+Estrategia recomendada: **Mobile First**. Escribir primero los estilos para pantallas pequeñas (como ya venimos haciendo) y luego agregar overrides para pantallas más grandes con `min-width`.
+
+```css
+/* Base: mobile first */
+.tarjetas { flex-direction: column; }
+
+/* Desktop: pantallas desde 1024px */
+@media (min-width: 1024px) {
+  .tarjetas { flex-direction: row; }
+}
+```
+
+🧩 **Sumamos esto al proyecto** — a partir de tablet, `main` pasa a fila para que `aside` quede como columna lateral:
+
+```css
+@media (min-width: 768px) {
+  main {
+    flex-direction: row;
+    align-items: flex-start;
+  }
+}
+```
+
+Gracias a `grid-template-columns: repeat(auto-fill, minmax(...))` (sección 16) y a `clamp()` (sección 17), la grilla de productos y la tipografía **ya son responsive sin necesidad de una media query propia** — esa es justamente la ventaja de esas dos herramientas modernas frente al enfoque de escribir un breakpoint para cada tamaño.
+
+#### ✅ Checkpoint — `estilos.css` completo
+
+```css
+/* estilos.css */
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+:root {
+  --color-primario: #2c3e50;
+  --color-secundario: #3498db;
+  --color-fondo: #f5f5f5;
+  --color-texto: #333333;
+  --color-error: #e74c3c;
+  --color-exito: #2ecc71;
+  --radio-borde: 8px;
+  --espaciado: 1rem;
+}
+
+html {
+  font-size: 16px;
+}
+
+body {
+  margin: 0;
+  font-family: 'Segoe UI', Arial, sans-serif;
+  line-height: 1.6;
+  color: var(--color-texto);
+  background-color: var(--color-fondo);
+}
+
+h1, h2, h3 {
+  color: var(--color-primario);
+}
+
+h1 { font-size: clamp(1.75rem, 4vw, 2.5rem); }
+h2 { font-size: clamp(1.4rem, 3vw, 2rem); }
+
+header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  background-color: var(--color-primario);
+  color: white;
+  padding: var(--espaciado);
+}
+
+header h1 { color: white; margin: 0; }
+
+header nav {
+  display: flex;
+  gap: 1.5rem;
+}
+
+header nav a {
+  color: white;
+  text-decoration: none;
+}
+
+header nav a:hover {
+  text-decoration: underline;
+}
+
+main {
+  max-width: 1200px;
+  width: 90%;
+  margin: 0 auto;
+  padding: var(--espaciado) 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.contenido { flex: 3; }
+aside { flex: 1; }
+
+aside ul {
+  list-style: none;
+  padding: 0;
+}
+
+section { margin-bottom: 2.5rem; }
+
+.grid-productos {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: var(--espaciado);
+  margin-top: 1rem;
+}
+
+.tarjeta-producto {
+  background: white;
+  border-radius: var(--radio-borde);
+  padding: 1.25rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.tarjeta-producto:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+}
+
+.tarjeta-producto h3 { margin-top: 0; }
+
+.tarjeta-producto .precio {
+  font-weight: 700;
+  color: var(--color-secundario);
+  font-size: 1.2rem;
+}
+
+.btn-favorito {
+  border: none;
+  background: none;
+  font-size: 1.4rem;
+  cursor: pointer;
+}
+
+.btn-favorito.activo { color: var(--color-error); }
+
+table { border-collapse: collapse; width: 100%; }
+th, td { border: 1px solid #ccc; padding: 8px 12px; text-align: center; }
+thead { background-color: var(--color-primario); color: white; }
+
+form { max-width: 400px; }
+label { display: block; margin-top: 12px; font-weight: bold; }
+input, select { width: 100%; padding: 8px; margin-top: 4px; }
+
+input:not(:placeholder-shown):invalid { border-color: var(--color-error); }
+input:not(:placeholder-shown):valid { border-color: var(--color-exito); }
+
+button[type="submit"] {
+  margin-top: 16px;
+  padding: 10px 24px;
+  background: var(--color-primario);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+button[type="submit"]:hover {
+  background: var(--color-secundario);
+}
+
+footer {
+  background: var(--color-primario);
+  color: white;
+  text-align: center;
+  padding: var(--espaciado);
+}
+
+footer a { color: white; }
+
+@media (min-width: 768px) {
+  main {
+    flex-direction: row;
+    align-items: flex-start;
+  }
+}
+```
+
+Si abrís `index.html` con Live Server ahora, la página ya se ve como un sitio real: header oscuro, tipografía escalada, tarjeta y formulario con estilo. Lo único que falta es que la grilla y la tabla tengan contenido — de eso se encarga JavaScript.
+
+---
