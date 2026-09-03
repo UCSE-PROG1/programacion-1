@@ -1089,3 +1089,784 @@ footer a { color: white; }
 Si abrís `index.html` con Live Server ahora, la página ya se ve como un sitio real: header oscuro, tipografía escalada, tarjeta y formulario con estilo. Lo único que falta es que la grilla y la tabla tengan contenido — de eso se encarga JavaScript.
 
 ---
+
+## Sección 3: JavaScript
+
+---
+
+### 20. ¿Qué es JavaScript?
+
+JavaScript (JS) es el lenguaje de programación de la web. Se ejecuta directamente en el **navegador** del usuario (lado del cliente), lo que permite crear páginas dinámicas e interactivas sin necesidad de comunicarse con el servidor para cada acción.
+
+Usos principales:
+- Responder a eventos del usuario (clics, teclado, formularios).
+- Modificar el contenido y estilo de la página dinámicamente.
+- Realizar peticiones a APIs sin recargar la página (Fetch).
+- Complementar la validación nativa de formularios con reglas propias.
+
+Ya dejamos `<script src="app.js"></script>` al final del `<body>` desde la sección 2. A partir de ahora, todo lo que escribamos va a ese archivo.
+
+```javascript
+// app.js
+
+console.log("app.js cargado correctamente");
+```
+
+---
+
+### 21. Variables y Tipos de Datos
+
+JavaScript es un lenguaje de **tipado dinámico**: una variable puede cambiar de tipo durante la ejecución.
+
+- `let`: declara una variable que puede cambiar de valor.
+- `const`: declara una constante. No puede reasignarse (pero los objetos y arrays declarados con `const` sí pueden modificarse internamente).
+- `var`: forma antigua, con problemas de alcance (_scope_). **Evitar su uso.**
+
+```javascript
+// ── Números ──
+let edad = 25;
+const PI = 3.14159;
+
+// ── Cadenas de texto (string) ──
+let nombre = "María";
+let mensaje = `Hola, ${nombre}! Tenés ${edad} años.`; // template literal
+
+// ── Booleanos ──
+let estaActivo = true;
+
+// ── Arrays y objetos ──
+let frutas = ["manzana", "banana", "naranja"];
+let persona = { nombre: "Carlos", edad: 30 };
+
+console.log(typeof edad);      // "number"
+console.log(typeof nombre);    // "string"
+console.log(typeof persona);   // "object"
+```
+
+Con estos conceptos ya podemos modelar los datos del catálogo. Vamos a construir la lógica en piezas hasta llegar a una versión completa y funcional al final de la sección 30.
+
+---
+
+### 22. Operadores
+
+```javascript
+let a = 10, b = 3;
+
+console.log(a + b);   // 13
+console.log(a % b);   // 1  (módulo: resto de la división entera)
+console.log(a ** b);  // 1000 (potenciación)
+
+// ── Comparación: SIEMPRE usar === y !== (compara valor Y tipo) ──
+console.log(5 === "5");    // false
+console.log(5 == "5");     // true  → == convierte tipos, evitar
+console.log(0 === false);  // false (correcto: distinto tipo)
+
+// ── Operadores lógicos ──
+let hayStock = true, estaEnOferta = false;
+console.log(hayStock && estaEnOferta); // false
+console.log(hayStock || estaEnOferta); // true
+console.log(!hayStock);                // false
+```
+
+---
+
+### 23. Condicionales
+
+```javascript
+function clasificarStock(cantidad) {
+  if (cantidad === 0) {
+    return "Sin stock";
+  } else if (cantidad < 5) {
+    return "Últimas unidades";
+  } else {
+    return "Disponible";
+  }
+}
+
+console.log(clasificarStock(0));  // "Sin stock"
+console.log(clasificarStock(3));  // "Últimas unidades"
+console.log(clasificarStock(20)); // "Disponible"
+
+// ── Operador ternario: condicion ? valorSiVerdadero : valorSiFalso ──
+let stock = 2;
+let etiqueta = stock > 0 ? "Comprar" : "Agotado";
+```
+
+Este patrón (`condicion ? valorA : valorB`) lo vamos a usar todo el tiempo en la sección 28 para decidir, por ejemplo, si un producto ya es favorito o no.
+
+---
+
+### 24. Bucles
+
+```javascript
+const categorias = ["Periféricos", "Computadoras", "Accesorios"];
+
+// ── for...of (recorre los valores de un array) ──
+for (const categoria of categorias) {
+  console.log(categoria);
+}
+
+// ── forEach (método del array, recibe una función) ──
+categorias.forEach((categoria, indice) => {
+  console.log(`${indice + 1}. ${categoria}`);
+});
+```
+
+En la práctica, para transformar listas de datos (como nuestro array de productos) vamos a usar sobre todo los métodos `map`, `filter`, `find` y `reduce`, que vemos en la sección 26 — son la forma moderna de recorrer arrays sin escribir un `for` manual.
+
+---
+
+### 25. Funciones
+
+```javascript
+// ── Declaración de función ──
+function formatearPrecio(valor) {
+  return `$${valor.toLocaleString("es-AR")}`;
+}
+console.log(formatearPrecio(800000)); // "$800.000"
+
+// ── Arrow function: sintaxis concisa, muy usada en callbacks ──
+const esFavorito = (id, favoritos) => favoritos.includes(id);
+
+// Si el cuerpo tiene más de una línea, necesita llaves y return explícito:
+const calcularDescuento = (precio, porcentaje) => {
+  const descuento = precio * (porcentaje / 100);
+  return precio - descuento;
+};
+```
+
+---
+
+### 26. Arrays en JavaScript
+
+```javascript
+let tareas = ["Definir HTML", "Definir CSS", "Conectar JS"];
+tareas.push("Conectar con la API"); // agrega al final
+console.log(tareas.length);         // 4
+
+// ── Métodos funcionales para transformar listas ──
+const productos = [
+  { id: 1, nombre: "Notebook", precio: 800000, stock: 10, categoria: "computadoras" },
+  { id: 2, nombre: "Mouse",    precio: 12000,  stock: 50, categoria: "perifericos" },
+  { id: 3, nombre: "Teclado",  precio: 25000,  stock: 30, categoria: "perifericos" },
+];
+
+// filter: devuelve un nuevo array con los elementos que cumplen la condición
+const perifericos = productos.filter(p => p.categoria === "perifericos");
+
+// map: transforma cada elemento en otra cosa
+const nombres = productos.map(p => p.nombre);
+
+// find: devuelve el primer elemento que cumple la condición (o undefined)
+const mouse = productos.find(p => p.nombre === "Mouse");
+
+// reduce: acumula un único valor a partir de todo el array
+const valorTotal = productos.reduce((acumulado, p) => acumulado + p.precio * p.stock, 0);
+
+console.log(perifericos.length); // 2
+console.log(nombres);            // ["Notebook", "Mouse", "Teclado"]
+console.log(valorTotal);         // 9110000
+```
+
+Este array `productos` es exactamente el que vamos a usar como dato inicial del catálogo.
+
+---
+
+### 27. Objetos en JavaScript
+
+```javascript
+const producto = {
+  id: 1,
+  nombre: "Notebook",
+  precio: 800000,
+  stock: 10,
+  categoria: "computadoras",
+
+  // método: una función como propiedad del objeto
+  descripcion() {
+    return `${this.nombre} - $${this.precio.toLocaleString("es-AR")}`;
+  }
+};
+
+console.log(producto.nombre);        // notación de punto
+console.log(producto["precio"]);     // notación de corchetes
+console.log(producto.descripcion()); // "Notebook - $800.000"
+
+// ── Desestructuración: extraer propiedades directamente ──
+const { nombre, precio } = producto;
+
+// ── Spread operator: clonar y combinar objetos (por ejemplo, para agregar un id nuevo) ──
+const productoConId = { ...producto, id: 4 };
+```
+
+🧩 **Sumamos esto al proyecto** — arrancamos `app.js` con los datos del catálogo (versión local, todavía sin conectar a ninguna API):
+
+```javascript
+// app.js
+
+// ── Datos iniciales (versión local; en la sección 31 los reemplazamos por fetch) ──
+let productos = [
+  { id: 1, nombre: "Notebook", precio: 800000, stock: 10, categoria: "computadoras" },
+  { id: 2, nombre: "Mouse",    precio: 12000,  stock: 50, categoria: "perifericos" },
+  { id: 3, nombre: "Teclado",  precio: 25000,  stock: 30, categoria: "perifericos" },
+];
+
+let favoritos = []; // ids de los productos marcados como favoritos
+```
+
+---
+
+### 28. El DOM
+
+El DOM es la representación en memoria del documento HTML. JavaScript puede acceder a él y modificarlo para cambiar el contenido, los estilos y la estructura de la página en tiempo real.
+
+```javascript
+// ── Seleccionar elementos ──
+const titulo  = document.getElementById("titulo");
+const boton   = document.querySelector("#btn-cambiar"); // selector CSS
+
+// ── Modificar contenido ──
+titulo.textContent = "Nuevo texto";  // texto plano
+titulo.innerHTML = "Texto <strong>con HTML</strong>"; // permite etiquetas
+
+// ── Trabajar con clases CSS (preferible a modificar .style directamente) ──
+titulo.classList.add("destacado");
+titulo.classList.toggle("oculto");
+```
+
+Ahora escribimos las dos funciones que **generan el HTML de la grilla y de la tabla a partir del array `productos`**. Usamos template literals (sección 21) y `map` (sección 26) para transformar cada objeto producto en un fragmento de HTML, y `classList`/atributos `data-*` para vincular cada tarjeta con su id.
+
+🧩 **Sumamos esto al proyecto:**
+
+```javascript
+// ── Renderizar catálogo (grilla de tarjetas) ──
+function renderizarCatalogo(lista) {
+  const grid = document.getElementById("grid-productos");
+  grid.innerHTML = lista.map(p => `
+    <article class="tarjeta-producto" data-id="${p.id}">
+      <h3>${p.nombre}</h3>
+      <p class="precio">$${p.precio.toLocaleString("es-AR")}</p>
+      <p>Stock: ${p.stock}</p>
+      <button class="btn-favorito ${favoritos.includes(p.id) ? "activo" : ""}" data-id="${p.id}">
+        ${favoritos.includes(p.id) ? "♥" : "♡"}
+      </button>
+    </article>
+  `).join("");
+}
+
+// ── Renderizar tabla comparativa ──
+function renderizarComparativa(lista) {
+  const tbody = document.getElementById("tabla-comparativa");
+  tbody.innerHTML = lista.map(p => `
+    <tr>
+      <td>${p.nombre}</td>
+      <td>$${p.precio.toLocaleString("es-AR")}</td>
+      <td>${p.stock}</td>
+      <td>${p.categoria}</td>
+    </tr>
+  `).join("");
+}
+
+function renderizarTodo() {
+  renderizarCatalogo(productos);
+  renderizarComparativa(productos);
+}
+
+// Primer render, apenas carga la página
+document.addEventListener("DOMContentLoaded", () => {
+  document.getElementById("estado-carga").textContent = "";
+  renderizarTodo();
+});
+```
+
+Si guardás y recargás con Live Server, ya deberías ver las tres tarjetas y las tres filas de la comparativa generadas dinámicamente, con el estilo que armamos en la Sección 2.
+
+---
+
+### 29. Eventos
+
+Los eventos permiten ejecutar código en respuesta a acciones del usuario. Usamos `addEventListener` para "escuchar" un evento sobre un elemento.
+
+```javascript
+boton.addEventListener("click", () => {
+  console.log("¡Click!");
+});
+```
+
+Cuando muchos elementos generados dinámicamente (como nuestras tarjetas) necesitan el mismo comportamiento, en vez de agregar un listener a cada botón conviene usar **delegación de eventos**: escuchar el clic en el contenedor padre (que sí existe desde el principio) y revisar, con `event.target`, sobre qué elemento hijo se hizo clic.
+
+También conectamos acá la validación HTML5 de la sección 8 con lógica propia: `event.preventDefault()` frena el envío del formulario para que podamos leer los valores, construir el objeto `producto` y actualizar el array antes de decidir qué hacer.
+
+🧩 **Sumamos esto al proyecto:**
+
+```javascript
+document.addEventListener("DOMContentLoaded", () => {
+  document.getElementById("estado-carga").textContent = "";
+  renderizarTodo();
+
+  // ── Delegación: un solo listener para todos los botones de favorito ──
+  document.getElementById("grid-productos").addEventListener("click", (event) => {
+    if (event.target.classList.contains("btn-favorito")) {
+      const id = Number(event.target.dataset.id);
+      alternarFavorito(id);
+    }
+  });
+
+  // ── Envío del formulario ──
+  document.getElementById("form-producto").addEventListener("submit", (event) => {
+    event.preventDefault(); // el navegador ya validó required/min/minlength
+
+    const nuevoProducto = {
+      id: productos.length ? Math.max(...productos.map(p => p.id)) + 1 : 1,
+      nombre: document.getElementById("input-nombre").value.trim(),
+      precio: parseFloat(document.getElementById("input-precio").value),
+      stock: parseInt(document.getElementById("input-stock").value),
+      categoria: document.getElementById("input-categoria").value,
+    };
+
+    productos.push(nuevoProducto);
+    renderizarTodo();
+    event.target.reset();
+  });
+});
+
+function alternarFavorito(id) {
+  if (favoritos.includes(id)) {
+    favoritos = favoritos.filter(favId => favId !== id); // ya estaba: lo sacamos
+  } else {
+    favoritos.push(id); // no estaba: lo agregamos
+  }
+  renderizarCatalogo(productos);
+}
+```
+
+Probá agregar un producto y marcar/desmarcar favoritos: la grilla y la tabla se actualizan solas. Lo único es que si recargás la página, los favoritos se pierden — de eso se encarga la próxima sección.
+
+---
+
+### 30. Persistencia con `localStorage`
+
+Hasta ahora, todo lo que hace JavaScript vive solo en la memoria de la pestaña: si recargamos la página, se pierde. El **Web Storage API** permite guardar datos en el navegador del usuario, disponibles incluso después de cerrar y volver a abrir la pestaña.
+
+- `localStorage`: no tiene fecha de expiración, persiste hasta que se borre explícitamente.
+- `sessionStorage`: misma API, pero se borra al cerrar la pestaña.
+
+Solo puede guardar **strings**, por eso los objetos y arrays se convierten con `JSON.stringify()` al guardar y se reconstruyen con `JSON.parse()` al leer.
+
+```javascript
+localStorage.setItem("clave", "valor");        // guardar un string
+localStorage.setItem("datos", JSON.stringify({ a: 1 })); // guardar un objeto
+
+const valor = localStorage.getItem("clave");    // leer (siempre string o null)
+const datos = JSON.parse(localStorage.getItem("datos") ?? "{}");
+
+localStorage.removeItem("clave"); // borrar una clave puntual
+```
+
+Vamos a usarlo para que los **favoritos** sobrevivan a un refresh de la página.
+
+🧩 **Sumamos esto al proyecto:**
+
+```javascript
+function cargarFavoritos() {
+  const guardados = localStorage.getItem("favoritos");
+  favoritos = guardados ? JSON.parse(guardados) : [];
+}
+
+function guardarFavoritos() {
+  localStorage.setItem("favoritos", JSON.stringify(favoritos));
+}
+
+function alternarFavorito(id) {
+  if (favoritos.includes(id)) {
+    favoritos = favoritos.filter(favId => favId !== id);
+  } else {
+    favoritos.push(id);
+  }
+  guardarFavoritos(); // persistimos el cambio
+  renderizarCatalogo(productos);
+}
+```
+
+Y llamamos a `cargarFavoritos()` antes del primer render:
+
+```javascript
+document.addEventListener("DOMContentLoaded", () => {
+  cargarFavoritos();
+  document.getElementById("estado-carga").textContent = "";
+  renderizarTodo();
+  // ... el resto de los listeners queda igual ...
+});
+```
+
+#### ✅ Checkpoint — `app.js` completo (versión local, con datos hardcodeados)
+
+```javascript
+// app.js
+
+// ── Datos iniciales (versión local; en la sección 31 los reemplazamos por fetch) ──
+let productos = [
+  { id: 1, nombre: "Notebook", precio: 800000, stock: 10, categoria: "computadoras" },
+  { id: 2, nombre: "Mouse",    precio: 12000,  stock: 50, categoria: "perifericos" },
+  { id: 3, nombre: "Teclado",  precio: 25000,  stock: 30, categoria: "perifericos" },
+];
+
+let favoritos = []; // ids de los productos marcados como favoritos
+
+// ── Renderizar catálogo (grilla de tarjetas) ──
+function renderizarCatalogo(lista) {
+  const grid = document.getElementById("grid-productos");
+  grid.innerHTML = lista.map(p => `
+    <article class="tarjeta-producto" data-id="${p.id}">
+      <h3>${p.nombre}</h3>
+      <p class="precio">$${p.precio.toLocaleString("es-AR")}</p>
+      <p>Stock: ${p.stock}</p>
+      <button class="btn-favorito ${favoritos.includes(p.id) ? "activo" : ""}" data-id="${p.id}">
+        ${favoritos.includes(p.id) ? "♥" : "♡"}
+      </button>
+    </article>
+  `).join("");
+}
+
+// ── Renderizar tabla comparativa ──
+function renderizarComparativa(lista) {
+  const tbody = document.getElementById("tabla-comparativa");
+  tbody.innerHTML = lista.map(p => `
+    <tr>
+      <td>${p.nombre}</td>
+      <td>$${p.precio.toLocaleString("es-AR")}</td>
+      <td>${p.stock}</td>
+      <td>${p.categoria}</td>
+    </tr>
+  `).join("");
+}
+
+function renderizarTodo() {
+  renderizarCatalogo(productos);
+  renderizarComparativa(productos);
+}
+
+// ── Favoritos persistidos con localStorage ──
+function cargarFavoritos() {
+  const guardados = localStorage.getItem("favoritos");
+  favoritos = guardados ? JSON.parse(guardados) : [];
+}
+
+function guardarFavoritos() {
+  localStorage.setItem("favoritos", JSON.stringify(favoritos));
+}
+
+function alternarFavorito(id) {
+  if (favoritos.includes(id)) {
+    favoritos = favoritos.filter(favId => favId !== id);
+  } else {
+    favoritos.push(id);
+  }
+  guardarFavoritos();
+  renderizarCatalogo(productos);
+}
+
+// ── Eventos ──
+document.addEventListener("DOMContentLoaded", () => {
+  cargarFavoritos();
+  document.getElementById("estado-carga").textContent = "";
+  renderizarTodo();
+
+  document.getElementById("grid-productos").addEventListener("click", (event) => {
+    if (event.target.classList.contains("btn-favorito")) {
+      const id = Number(event.target.dataset.id);
+      alternarFavorito(id);
+    }
+  });
+
+  document.getElementById("form-producto").addEventListener("submit", (event) => {
+    event.preventDefault();
+
+    const nuevoProducto = {
+      id: productos.length ? Math.max(...productos.map(p => p.id)) + 1 : 1,
+      nombre: document.getElementById("input-nombre").value.trim(),
+      precio: parseFloat(document.getElementById("input-precio").value),
+      stock: parseInt(document.getElementById("input-stock").value),
+      categoria: document.getElementById("input-categoria").value,
+    };
+
+    productos.push(nuevoProducto);
+    renderizarTodo();
+    event.target.reset();
+  });
+});
+```
+
+En este punto el catálogo ya es una aplicación completa y funcional, sin depender de ningún servidor: HTML semántico, CSS moderno (variables, Grid, `clamp()`, responsive) y JavaScript con DOM, eventos y persistencia local. Lo que falta — y es el objetivo de lo que sigue — es reemplazar el array hardcodeado por datos reales de una API.
+
+---
+
+### 31. Fetch API y llamadas al servidor
+
+La **Fetch API** permite hacer peticiones HTTP asíncronas desde el navegador sin recargar la página.
+
+```javascript
+// ── async/await (más legible que encadenar .then()) ──
+async function obtenerDatos() {
+  try {
+    const response = await fetch("https://api.ejemplo.com/datos");
+
+    if (!response.ok) {
+      throw new Error(`Error HTTP: ${response.status}`);
+    }
+
+    const datos = await response.json();
+    console.log(datos);
+  } catch (error) {
+    console.error("No se pudieron obtener los datos:", error);
+  }
+}
+```
+
+Vamos a reemplazar el array `productos` hardcodeado por una carga real desde una API. Guardamos la URL en una constante, y la función `cargarProductos` reemplaza al bloque de datos fijos.
+
+🧩 **Sumamos esto al proyecto** (reemplaza la sección de "Datos iniciales" del checkpoint anterior):
+
+```javascript
+const API_URL = "http://localhost:5000/api/productos";
+
+let productos = [];
+let favoritos = [];
+
+async function cargarProductos() {
+  const estadoDiv = document.getElementById("estado-carga");
+  estadoDiv.textContent = "Cargando productos...";
+
+  try {
+    const response = await fetch(API_URL);
+    if (!response.ok) throw new Error(`Error HTTP: ${response.status}`);
+
+    productos = await response.json();
+    estadoDiv.textContent = "";
+    renderizarTodo();
+  } catch (error) {
+    estadoDiv.textContent = "No se pudieron cargar los productos. Verificá que la API esté corriendo.";
+    console.error(error);
+  }
+}
+
+async function crearProducto(nuevo) {
+  const response = await fetch(API_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(nuevo),
+  });
+
+  if (!response.ok) throw new Error(`Error HTTP: ${response.status}`);
+  return response.json();
+}
+```
+
+Y el listener de `DOMContentLoaded` pasa a llamar `cargarProductos()` en vez de renderizar datos fijos, mientras que el `submit` del formulario ahora es `async` y llama a la API en vez de hacer `productos.push(...)` directamente:
+
+```javascript
+document.addEventListener("DOMContentLoaded", () => {
+  cargarFavoritos();
+  cargarProductos(); // reemplaza al renderizarTodo() con datos hardcodeados
+
+  document.getElementById("grid-productos").addEventListener("click", (event) => {
+    if (event.target.classList.contains("btn-favorito")) {
+      const id = Number(event.target.dataset.id);
+      alternarFavorito(id);
+    }
+  });
+
+  document.getElementById("form-producto").addEventListener("submit", async (event) => {
+    event.preventDefault();
+
+    const nuevoProducto = {
+      nombre: document.getElementById("input-nombre").value.trim(),
+      precio: parseFloat(document.getElementById("input-precio").value),
+      stock: parseInt(document.getElementById("input-stock").value),
+      categoria: document.getElementById("input-categoria").value,
+    };
+
+    try {
+      await crearProducto(nuevoProducto);
+      event.target.reset();
+      await cargarProductos(); // recargamos la lista desde el servidor
+    } catch (error) {
+      console.error("Error al agregar el producto:", error);
+    }
+  });
+});
+```
+
+Notá que ya no necesitamos calcular el `id` a mano (`Math.max(...) + 1`): ahora lo asigna el servidor, que es su responsabilidad.
+
+---
+
+### 32. CORS
+
+**CORS** (_Cross-Origin Resource Sharing_) es un mecanismo de seguridad del navegador que **bloquea por defecto** las peticiones HTTP entre diferentes orígenes.
+
+Un **origen** está compuesto por: protocolo + dominio + puerto. Por ejemplo:
+- `http://127.0.0.1:5500` (frontend con Live Server)
+- `http://localhost:5000` (backend en .NET)
+
+Si el frontend y el backend están en orígenes distintos, el navegador bloqueará la petición a menos que el servidor incluya los encabezados de CORS apropiados en su respuesta.
+
+> CORS es una restricción del **navegador**, no del servidor. Una herramienta como Postman o curl puede hacer la misma petición sin problemas porque no tiene esta restricción.
+
+Para habilitar CORS en una API de **.NET Core** hay que configurarlo en `Program.cs`:
+
+```csharp
+var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddControllers();
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("PermitirFrontend", policy =>
+    {
+        policy
+            .WithOrigins(
+                "http://localhost:5500",  // Live Server de VS Code
+                "http://127.0.0.1:5500"   // variante de Live Server
+            )
+            .AllowAnyHeader()
+            .AllowAnyMethod();
+    });
+});
+
+var app = builder.Build();
+
+// IMPORTANTE: debe ir antes de UseAuthorization y MapControllers
+app.UseCors("PermitirFrontend");
+
+app.UseAuthorization();
+app.MapControllers();
+app.Run();
+```
+
+---
+
+### 33. Proyecto Completo: Frontend + Backend con .NET
+
+Cerramos la unidad conectando el catálogo con una API REST real, construida en .NET Core (Unidad 6). Este es el checkpoint final: los tres archivos del frontend, más el backend mínimo que los sirve.
+
+**Flujo de datos:**
+```
+Usuario → index.html → fetch() → API .NET → lista en memoria
+                     ←           ← JSON     ←
+      ← DOM actualizado (grilla + tabla) ←
+```
+
+**Estructura de carpetas:**
+```
+techstore/
+├── backend/
+│   └── TechStoreApi/
+│       ├── Controllers/
+│       │   └── ProductosController.cs
+│       ├── Models/
+│       │   └── Producto.cs
+│       └── Program.cs
+└── frontend/
+    ├── index.html
+    ├── estilos.css
+    └── app.js
+```
+
+```csharp
+// backend/TechStoreApi/Models/Producto.cs
+public class Producto
+{
+    public int Id { get; set; }
+    public string Nombre { get; set; } = string.Empty;
+    public decimal Precio { get; set; }
+    public int Stock { get; set; }
+    public string Categoria { get; set; } = string.Empty;
+}
+```
+
+```csharp
+// backend/TechStoreApi/Controllers/ProductosController.cs
+using Microsoft.AspNetCore.Mvc;
+
+[ApiController]
+[Route("api/[controller]")]
+public class ProductosController : ControllerBase
+{
+    // Lista en memoria (en un proyecto real vendría de una base de datos, Unidad 5/6)
+    private static List<Producto> _productos = new()
+    {
+        new Producto { Id = 1, Nombre = "Notebook", Precio = 800000, Stock = 10, Categoria = "computadoras" },
+        new Producto { Id = 2, Nombre = "Mouse",     Precio = 12000,  Stock = 50, Categoria = "perifericos" },
+        new Producto { Id = 3, Nombre = "Teclado",   Precio = 25000,  Stock = 30, Categoria = "perifericos" },
+    };
+
+    [HttpGet]
+    public ActionResult<IEnumerable<Producto>> GetTodos()
+    {
+        return Ok(_productos);
+    }
+
+    [HttpPost]
+    public ActionResult<Producto> Crear([FromBody] Producto nuevo)
+    {
+        nuevo.Id = _productos.Max(p => p.Id) + 1;
+        _productos.Add(nuevo);
+        return CreatedAtAction(nameof(GetTodos), nuevo);
+    }
+}
+```
+
+El **frontend** es exactamente el checkpoint de la sección 9 (`index.html`), el de la sección 19 (`estilos.css`) y el de esta sección (`app.js` con Fetch + localStorage), sin ningún cambio adicional — esa es la idea de haber construido todo de forma incremental: cada pieza nueva se apoya en las anteriores.
+
+Con el backend corriendo (`dotnet run` en `TechStoreApi`) y el frontend abierto con Live Server, el catálogo carga los productos reales desde la API, permite agregar nuevos, y recuerda los favoritos entre recargas gracias a `localStorage`.
+
+---
+
+## Herramientas Recomendadas
+
+### Visual Studio Code + Live Server
+
+**VS Code** es el editor de código recomendado para desarrollo web. Es gratuito, liviano y tiene una gran cantidad de extensiones.
+
+Extensión indispensable para esta unidad: **Live Server** (de Ritwick Dey).
+
+- Instalar desde el panel de extensiones de VS Code (Ctrl+Shift+X) buscando "Live Server".
+- Hacer clic derecho sobre `index.html` y seleccionar **"Open with Live Server"**.
+- El navegador se abre automáticamente en `http://127.0.0.1:5500`.
+- Cada vez que se guarda un archivo (`.html`, `.css`, `.js`), la página se **recarga automáticamente**.
+
+Otras extensiones útiles:
+- **Prettier**: formatea el código automáticamente al guardar.
+- **Auto Rename Tag**: renombra la etiqueta de cierre cuando se modifica la de apertura.
+- **CSS Peek**: permite ver los estilos CSS de un elemento directamente desde el HTML.
+
+### Browser DevTools (F12)
+
+Todos los navegadores modernos incluyen herramientas de desarrollo accesibles con **F12** (o clic derecho → "Inspeccionar").
+
+| Pestaña | Para qué sirve |
+|---|---|
+| **Elements** | Ver y editar el HTML y CSS en tiempo real. Muy útil para experimentar con estilos y variables CSS. |
+| **Console** | Ver mensajes de `console.log()`, errores y advertencias. También permite ejecutar código JS directamente. |
+| **Network** | Ver todas las peticiones HTTP que hace la página (fetch, imágenes, etc.) con sus respuestas. |
+| **Sources** | Ver y depurar el código JavaScript con breakpoints. |
+| **Application** | Ver `localStorage`, `sessionStorage` y cookies — útil para inspeccionar los favoritos guardados. |
+
+### Cómo usar la consola del navegador
+
+```javascript
+console.log("Valor de x:", x);
+console.log("Producto:", { nombre: "Mouse", precio: 12000 });
+console.warn("Advertencia: esto podría ser un problema");
+console.error("Error: algo salió mal");
+
+// Mostrar datos en formato tabla — ideal para inspeccionar el array de productos
+console.table(productos);
+```
+
+En la consola también se puede escribir código JavaScript directamente y ejecutarlo con Enter. Es muy útil para probar expresiones rápidamente, o para inspeccionar el estado de `productos` y `favoritos` mientras se prueba la página.
+
+---
+
+*Programación I - UCSE | Unidad 7: Programación Visual*
