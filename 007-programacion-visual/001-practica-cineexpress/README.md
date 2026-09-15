@@ -1,4 +1,4 @@
-# Práctica en clase: CineExpress — Catálogo de películas
+# Práctica entregable unidad 7: CineExpress — Catálogo de películas
 
 ## Objetivo
 
