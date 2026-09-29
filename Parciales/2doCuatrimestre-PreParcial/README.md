@@ -4,7 +4,7 @@
 
 - El examen es **individual y presencial**, y se resuelve en **2 horas**.
 
-- Se debe entregar en un repositorio privado de GitHub llamado **`Prog1-Parcial3-ApellidoNombre`**.
+- Se debe entregar en un repositorio privado de GitHub llamado **`Prog1-PreParcial2doCuatri-ApellidoNombre`**.
 
 - **Las entregas realizadas fuera del horario establecido tendrán una penalización automática de -10 puntos** sobre la nota final, sin excepción.
 
