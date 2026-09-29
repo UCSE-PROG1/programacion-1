@@ -1,4 +1,4 @@
-# Práctica en clase: CineExpress — Catálogo de películas
+# Práctica entregable unidad 7: CineExpress — Catálogo de películas
 
 ## Objetivo
 
@@ -100,7 +100,7 @@ Conceptos de la unidad que se ponen en juego (repasá la sección correspondient
 ## Entrega
 
 - Crear un repositorio privado en GitHub con el nombre `Prog1-Practica-CineExpress-TuApellido` (reemplazá `TuApellido` por tu apellido real).
-- Agregar a los profesores como colaboradores.
+- Agregar a gonzaperez2312@gmail.com
 - Organizar el repo en dos carpetas, una para cada proyecto:
 
 ```
